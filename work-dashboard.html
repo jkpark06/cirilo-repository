@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
+<title>JK World</title>
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f4f0;--surface:#fff;--surface2:#f0efe9;
+  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.15);
+  --text:#1a1a18;--text2:#6b6b65;--text3:#a8a8a0;
+  --blue:#2563eb;--blue-bg:#eff4ff;--blue-text:#1e40af;
+  --green:#16a34a;--green-bg:#f0fdf4;--green-text:#15803d;
+  --amber:#d97706;--amber-bg:#fffbeb;--amber-text:#92400e;
+  --red:#dc2626;--red-bg:#fef2f2;--red-text:#991b1b;
+  --purple:#7c3aed;--purple-bg:#f5f3ff;--purple-text:#5b21b6;
+  --teal:#0891b2;--teal-bg:#ecfeff;--teal-text:#155e75;
+  --r:12px;--rs:8px;
+  --shadow:0 1px 3px rgba(0,0,0,0.08),0 1px 2px rgba(0,0,0,0.04);
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#141413;--surface:#1e1e1c;--surface2:#272725;
+  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.15);
+  --text:#f0efe9;--text2:#9a9a92;--text3:#5a5a54;
+  --blue-bg:#1e2a4a;--blue-text:#93b4f8;
+  --green-bg:#142a1e;--green-text:#6fcf97;
+  --amber-bg:#2a1e0a;--amber-text:#f6c05c;
+  --red-bg:#2a1010;--red-text:#f87171;
+  --purple-bg:#1e1232;--purple-text:#c4b5fd;
+  --teal-bg:#0a1e22;--teal-text:#67e8f9;
+}}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.5;min-height:100vh}
+
+/* ── Layout ── */
+.app{display:flex;min-height:100vh;position:relative}
+
+/* World map: purely decorative, never blocks clicks */
+.world-map-bg{
+  position:fixed;inset:0;z-index:0;
+  pointer-events:none;user-select:none;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 500'%3E%3Crect width='1000' height='500' fill='%23d6eaf8'/%3E%3Cg fill='%2390c4a0' stroke='%2370a880' stroke-width='0.5'%3E%3Cpath d='M60 60 Q130 40 180 60 Q220 75 230 110 Q200 140 160 135 Q100 125 70 100 Z'/%3E%3Cpath d='M240 50 Q330 35 390 55 Q440 70 450 110 Q420 145 370 140 Q300 130 255 100 Z'/%3E%3Cpath d='M400 45 Q500 30 570 50 Q620 65 630 105 Q600 140 540 135 Q465 120 415 90 Z'/%3E%3Cpath d='M630 42 Q720 28 790 48 Q840 62 845 100 Q810 135 750 128 Q675 115 638 82 Z'/%3E%3Cpath d='M800 38 Q890 25 950 48 Q990 62 995 100 Q960 132 900 126 Q825 112 805 78 Z'/%3E%3Cpath d='M50 140 Q110 125 155 145 Q185 165 182 205 Q155 235 110 228 Q60 215 45 180 Z'/%3E%3Cpath d='M60 220 Q110 208 145 228 Q168 248 162 295 Q135 330 90 322 Q45 305 48 265 Z'/%3E%3Cpath d='M80 310 Q125 298 155 320 Q174 348 162 400 Q130 435 88 425 Q50 408 52 365 Z'/%3E%3Cpath d='M155 148 Q240 132 305 155 Q350 175 348 225 Q315 268 258 260 Q192 248 162 208 Z'/%3E%3Cpath d='M178 260 Q240 248 282 268 Q310 292 300 345 Q270 385 220 378 Q168 362 162 315 Z'/%3E%3Cpath d='M310 140 Q410 125 480 148 Q525 168 520 218 Q488 262 428 255 Q352 240 318 195 Z'/%3E%3Cpath d='M490 132 Q610 115 700 140 Q755 162 752 218 Q718 265 648 258 Q565 242 500 195 Z'/%3E%3Cpath d='M695 128 Q790 112 865 138 Q915 158 910 210 Q875 255 808 248 Q728 232 700 185 Z'/%3E%3Cpath d='M862 124 Q958 110 998 138 L1000 220 Q958 258 895 248 Q838 230 848 178 Z'/%3E%3Cpath d='M335 258 Q415 245 468 268 Q505 295 498 348 Q465 392 410 385 Q348 368 330 318 Z'/%3E%3Cpath d='M478 262 Q555 250 605 272 Q638 298 628 355 Q595 398 540 390 Q480 372 468 322 Z'/%3E%3Cpath d='M285 358 Q358 345 408 368 Q440 395 428 448 Q396 488 342 480 Q282 462 272 412 Z'/%3E%3C/g%3E%3Cg stroke='%2390bcd8' stroke-width='0.5' fill='none' opacity='0.5'%3E%3Cellipse cx='500' cy='250' rx='498' ry='245'/%3E%3Cellipse cx='500' cy='250' rx='330' ry='245'/%3E%3Cellipse cx='500' cy='250' rx='165' ry='245'/%3E%3Cline x1='0' y1='250' x2='1000' y2='250'/%3E%3Cline x1='500' y1='5' x2='500' y2='495'/%3E%3Cline x1='0' y1='125' x2='1000' y2='125'/%3E%3Cline x1='0' y1='375' x2='1000' y2='375'/%3E%3C/g%3E%3C/svg%3E") center/cover;
+  opacity:0.13;
+}
+
+/* ── Sidebar ── */
+.sidebar{
+  width:220px;flex-shrink:0;
+  background:rgba(255,255,255,0.92);
+  backdrop-filter:blur(8px);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  position:sticky;top:0;height:100vh;overflow-y:auto;
+  z-index:10;
+}
+@media(prefers-color-scheme:dark){
+  .sidebar{background:rgba(30,30,28,0.95)}
+}
+.logo-wrap{padding:18px 16px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.logo-globe{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#1e40af,#0891b2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-globe svg{width:16px;height:16px;color:#fff}
+.logo-text{font-size:17px;font-weight:600;color:var(--text);letter-spacing:-.3px}
+.nav-sec{padding:14px 12px 6px;font-size:11px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:var(--text3)}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;margin:1px 8px;border-radius:var(--rs);cursor:pointer;color:var(--text2);font-size:14px;transition:background .15s,color .15s;user-select:none}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:var(--blue-bg);color:var(--blue-text);font-weight:500}
+.nav-item svg{width:17px;height:17px;flex-shrink:0}
+.nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:600;padding:1px 6px;border-radius:99px;min-width:18px;text-align:center}
+.sb-footer{margin-top:auto;padding:16px 12px;border-top:1px solid var(--border)}
+.user-card{display:flex;align-items:center;gap:10px;padding:8px;border-radius:var(--rs);cursor:pointer}
+.user-card:hover{background:var(--surface2)}
+.uavatar{width:32px;height:32px;border-radius:50%;background:var(--blue-bg);color:var(--blue-text);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0}
+.uname{font-size:13px;font-weight:500;color:var(--text)}
+.urole{font-size:11px;color:var(--text3)}
+
+/* ── Main ── */
+.main{flex:1;min-width:0;overflow-x:hidden;z-index:1;position:relative}
+.topbar{
+  background:rgba(255,255,255,0.9);
+  backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--border);
+  padding:0 24px;height:56px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:20;
+}
+@media(prefers-color-scheme:dark){.topbar{background:rgba(30,30,28,0.92)}}
+.topbar-left{display:flex;align-items:center;gap:12px}
+.menu-btn{display:none;width:36px;height:36px;border:none;background:none;color:var(--text);cursor:pointer;border-radius:var(--rs);align-items:center;justify-content:center;padding:0}
+.menu-btn:hover{background:var(--surface2)}
+.menu-btn svg{width:20px;height:20px}
+.page-title{font-size:15px;font-weight:600;color:var(--text)}
+.tb-right{display:flex;align-items:center;gap:8px}
+.icon-btn{width:36px;height:36px;border-radius:var(--rs);border:1px solid var(--border2);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text);position:relative;transition:background .15s}
+.icon-btn:hover{background:var(--surface2)}
+.icon-btn svg{width:18px;height:18px}
+.bdot{position:absolute;top:5px;right:5px;width:8px;height:8px;background:var(--red);border-radius:50%;border:2px solid var(--surface)}
+.add-btn{display:flex;align-items:center;gap:6px;padding:0 14px;height:36px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:13px;font-weight:500;cursor:pointer;transition:opacity .15s;font-family:inherit}
+.add-btn:hover{opacity:.88}
+.add-btn svg{width:16px;height:16px}
+
+/* ── Content ── */
+.content{padding:24px;max-width:1200px}
+.view{display:none}.view.active{display:block}
+
+/* ── Dashboard world map overlay ── */
+.dash-map-bg{
+  position:fixed;inset:0;
+  pointer-events:none;user-select:none;
+  z-index:0;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 500'%3E%3Crect width='1000' height='500' fill='%23b8d4f0'/%3E%3Cg fill='%2378b898' stroke='%2358a878' stroke-width='0.6'%3E%3Cpath d='M60 60 Q130 40 180 60 Q220 75 230 110 Q200 140 160 135 Q100 125 70 100 Z'/%3E%3Cpath d='M240 50 Q330 35 390 55 Q440 70 450 110 Q420 145 370 140 Q300 130 255 100 Z'/%3E%3Cpath d='M400 45 Q500 30 570 50 Q620 65 630 105 Q600 140 540 135 Q465 120 415 90 Z'/%3E%3Cpath d='M630 42 Q720 28 790 48 Q840 62 845 100 Q810 135 750 128 Q675 115 638 82 Z'/%3E%3Cpath d='M800 38 Q890 25 950 48 Q990 62 995 100 Q960 132 900 126 Q825 112 805 78 Z'/%3E%3Cpath d='M50 140 Q110 125 155 145 Q185 165 182 205 Q155 235 110 228 Q60 215 45 180 Z'/%3E%3Cpath d='M60 220 Q110 208 145 228 Q168 248 162 295 Q135 330 90 322 Q45 305 48 265 Z'/%3E%3Cpath d='M155 148 Q240 132 305 155 Q350 175 348 225 Q315 268 258 260 Q192 248 162 208 Z'/%3E%3Cpath d='M310 140 Q410 125 480 148 Q525 168 520 218 Q488 262 428 255 Q352 240 318 195 Z'/%3E%3Cpath d='M490 132 Q610 115 700 140 Q755 162 752 218 Q718 265 648 258 Q565 242 500 195 Z'/%3E%3Cpath d='M695 128 Q790 112 865 138 Q915 158 910 210 Q875 255 808 248 Q728 232 700 185 Z'/%3E%3Cpath d='M862 124 Q958 110 998 138 L1000 220 Q958 258 895 248 Q838 230 848 178 Z'/%3E%3Cpath d='M335 258 Q415 245 468 268 Q505 295 498 348 Q465 392 410 385 Q348 368 330 318 Z'/%3E%3Cpath d='M478 262 Q555 250 605 272 Q638 298 628 355 Q595 398 540 390 Q480 372 468 322 Z'/%3E%3Cpath d='M285 358 Q358 345 408 368 Q440 395 428 448 Q396 488 342 480 Q282 462 272 412 Z'/%3E%3C/g%3E%3Cg stroke='%2378acd8' stroke-width='0.6' fill='none' opacity='0.6'%3E%3Cellipse cx='500' cy='250' rx='498' ry='245'/%3E%3Cellipse cx='500' cy='250' rx='330' ry='245'/%3E%3Cellipse cx='500' cy='250' rx='165' ry='245'/%3E%3Cline x1='0' y1='250' x2='1000' y2='250'/%3E%3Cline x1='500' y1='5' x2='500' y2='495'/%3E%3Cline x1='0' y1='125' x2='1000' y2='125'/%3E%3Cline x1='0' y1='375' x2='1000' y2='375'/%3E%3C/g%3E%3Ccircle cx='790' cy='155' r='5' fill='%23e84040' opacity='0.8'/%3E%3C/svg%3E") center/cover;
+  opacity:0;
+  transition:opacity .3s;
+}
+.dash-map-bg.visible{opacity:0.11}
+
+/* ── Cards ── */
+.metrics-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.metric-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;box-shadow:var(--shadow);cursor:pointer;transition:border-color .15s,transform .12s}
+.metric-card:hover{border-color:var(--blue);transform:translateY(-1px)}
+.metric-label{font-size:12px;color:var(--text2);margin-bottom:6px;display:flex;align-items:center;gap:5px}
+.metric-label svg{width:13px;height:13px}
+.metric-value{font-size:28px;font-weight:600;color:var(--text);line-height:1.1}
+.metric-sub{font-size:11px;margin-top:4px}
+.grid-3{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:16px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;box-shadow:var(--shadow);margin-bottom:16px}
+.card:last-child{margin-bottom:0}
+.card-title{font-size:12px;font-weight:600;color:var(--text2);margin-bottom:14px;display:flex;align-items:center;gap:6px;text-transform:uppercase;letter-spacing:.5px}
+.card-title svg{width:14px;height:14px}
+.card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.card-hdr .card-title{margin-bottom:0}
+
+/* ── Timeline ── */
+.t-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.t-item:last-child{border-bottom:none}
+.t-time{font-size:11px;color:var(--text3);min-width:38px;padding-top:3px;font-variant-numeric:tabular-nums}
+.t-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.t-title{font-size:13px;font-weight:500;color:var(--text)}
+.t-meta{font-size:11px;color:var(--text3);margin-top:2px}
+.badge{display:inline-block;font-size:10px;font-weight:500;padding:2px 7px;border-radius:99px;margin-left:5px}
+
+/* ── Notifications ── */
+.notif-item{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:opacity .2s}
+.notif-item:last-child{border-bottom:none}
+.notif-item.read{opacity:.5}
+.notif-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.notif-icon svg{width:17px;height:17px}
+.notif-body{flex:1}
+.notif-title2{font-size:13px;font-weight:500;color:var(--text)}
+.notif-desc{font-size:12px;color:var(--text2);margin-top:2px}
+.notif-time{font-size:11px;color:var(--text3);margin-top:3px}
+.unread-dot{width:7px;height:7px;border-radius:50%;background:var(--blue);flex-shrink:0;margin-top:8px}
+
+/* ── Calendar ── */
+.cal-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.week-lbl{font-size:13px;font-weight:500;color:var(--text);flex:1;text-align:center;min-width:150px}
+.cal-nav{width:28px;height:28px;border:1px solid var(--border2);background:none;border-radius:6px;cursor:pointer;color:var(--text);display:flex;align-items:center;justify-content:center;transition:background .15s;font-family:inherit}
+.cal-nav:hover{background:var(--surface2)}
+.cal-nav svg{width:14px;height:14px}
+.tgl-grp{display:flex;border:1px solid var(--border2);border-radius:var(--rs);overflow:hidden}
+.tgl-btn{padding:5px 12px;font-size:12px;font-weight:500;cursor:pointer;background:none;border:none;color:var(--text2);transition:background .15s,color .15s;font-family:inherit}
+.tgl-btn.active{background:var(--blue);color:#fff}
+.cal-grid{display:grid;border-top:1px solid var(--border);border-left:1px solid var(--border);font-size:12px;overflow:hidden;border-radius:var(--rs)}
+.cal-grid.wk{grid-template-columns:48px repeat(7,1fr)}
+.cal-hd{background:var(--surface2);padding:8px 4px;text-align:center;border-right:1px solid var(--border);border-bottom:1px solid var(--border);color:var(--text2);line-height:1.3}
+.cal-hd.today{color:var(--blue);font-weight:600}
+.cal-hd.today .cal-dn{background:var(--blue);color:#fff;width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px}
+.cal-dn{font-size:13px;font-weight:500}
+.cal-wx{font-size:10px;color:var(--text3);margin-top:1px}
+.cal-timecol{background:var(--surface2);padding:6px 6px 6px 0;text-align:right;color:var(--text3);font-size:11px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);line-height:1;vertical-align:top}
+.cal-cell{border-right:1px solid var(--border);border-bottom:1px solid var(--border);min-height:40px;padding:2px;cursor:pointer;transition:background .1s;position:relative;vertical-align:top}
+.cal-cell:hover{background:var(--surface2)}
+.cal-cell.today-col{background:color-mix(in srgb,var(--blue-bg) 25%,transparent)}
+.cal-ev{font-size:11px;padding:2px 5px;border-radius:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500;cursor:grab;margin-bottom:1px;user-select:none}
+.cal-ev:active{cursor:grabbing;opacity:.7}
+.cal-ev.dragging{opacity:.4}
+.cal-cell.drag-over{background:var(--blue-bg)!important;outline:2px dashed var(--blue)}
+.month-grid{display:grid;grid-template-columns:repeat(7,1fr);border-top:1px solid var(--border);border-left:1px solid var(--border);border-radius:var(--rs);overflow:hidden}
+.month-hd{background:var(--surface2);padding:8px 4px;text-align:center;border-right:1px solid var(--border);border-bottom:1px solid var(--border);color:var(--text2);font-size:12px;font-weight:500}
+.month-hd.we{color:var(--red-text)}
+.month-cell{border-right:1px solid var(--border);border-bottom:1px solid var(--border);min-height:80px;padding:4px;cursor:pointer;transition:background .1s}
+.month-cell:hover{background:var(--surface2)}
+.month-cell.today-mc{background:color-mix(in srgb,var(--blue-bg) 25%,transparent)}
+.month-cell.other-m{opacity:.4}
+.month-dn{font-size:12px;font-weight:500;color:var(--text2);margin-bottom:2px}
+.month-dn.today-n{background:var(--blue);color:#fff;width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px}
+.month-ev{font-size:10px;padding:1px 5px;border-radius:3px;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500;cursor:pointer}
+.month-more{font-size:10px;color:var(--text3);padding:1px 3px}
+.cat-legend{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+
+/* ── Todo ── */
+.tab-bar{display:flex;gap:2px;margin-bottom:16px;background:var(--surface2);padding:4px;border-radius:var(--rs);flex-wrap:wrap}
+.tab{flex:1;text-align:center;padding:7px 4px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;color:var(--text2);transition:background .15s,color .15s;user-select:none;min-width:0}
+.tab.active{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.tab-count{font-size:10px;font-weight:600;margin-left:3px;opacity:.7}
+.todo-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--rs);cursor:pointer;user-select:none;transition:background .12s;margin-bottom:2px}
+.todo-item:hover{background:var(--surface2)}
+.chk{width:17px;height:17px;border-radius:5px;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s,border-color .15s}
+.chk.on{background:var(--green);border-color:var(--green)}
+.chk svg{width:10px;height:10px;color:#fff}
+.todo-txt{font-size:13px;flex:1;color:var(--text)}
+.todo-txt.done{text-decoration:line-through;color:var(--text3)}
+.todo-due{font-size:11px;color:var(--text3);white-space:nowrap}
+.todo-due.ov{color:var(--red-text);font-weight:500}
+.todo-due.td{color:var(--amber-text);font-weight:500}
+.pri-b{font-size:10px;font-weight:500;padding:2px 7px;border-radius:99px;white-space:nowrap}
+.todo-acts{display:flex;gap:4px;opacity:0;transition:opacity .15s}
+.todo-item:hover .todo-acts{opacity:1}
+.ta-btn{width:24px;height:24px;border-radius:5px;border:none;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text3)}
+.ta-btn:hover{background:var(--border2);color:var(--text)}
+.ta-btn svg{width:13px;height:13px}
+.empty-st{text-align:center;padding:32px 16px;color:var(--text3);font-size:13px}
+.empty-st svg{width:32px;height:32px;margin-bottom:8px;opacity:.4;display:block;margin-left:auto;margin-right:auto}
+
+/* ── Projects ── */
+.proj-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;box-shadow:var(--shadow);margin-bottom:12px}
+.proj-card:hover{border-color:var(--border2)}
+.proj-card-hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.proj-name{font-size:15px;font-weight:600;color:var(--text);margin-bottom:3px}
+.proj-goal{font-size:12px;color:var(--text2);line-height:1.5}
+.proj-acts{display:flex;gap:4px;flex-shrink:0}
+.pa-btn{width:28px;height:28px;border-radius:var(--rs);border:1px solid var(--border2);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text2);transition:background .15s}
+.pa-btn:hover{background:var(--surface2);color:var(--text)}
+.pa-btn.del:hover{background:var(--red-bg);color:var(--red-text);border-color:var(--red-text)}
+.pa-btn svg{width:13px;height:13px}
+.prog-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.prog{flex:1;height:6px;background:var(--surface2);border-radius:99px;overflow:hidden}
+.prog-fill{height:100%;border-radius:99px;transition:width .5s}
+.proj-pct-lbl{font-size:13px;font-weight:600;color:var(--text);min-width:36px;text-align:right}
+.proj-counts{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:12px;color:var(--text2)}
+.proj-items{margin-top:8px}
+.proj-item-row{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:var(--rs);background:var(--surface2);margin-bottom:4px;font-size:13px;flex-wrap:nowrap;min-height:36px}
+.proj-ir-txt{flex:1;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.st-badge{font-size:10px;font-weight:500;padding:2px 7px;border-radius:99px;white-space:nowrap}
+.proj-ir-date{font-size:11px;color:var(--text3);white-space:nowrap}
+.proj-meta{display:flex;gap:16px;margin-top:10px}
+.proj-meta-item{font-size:11px;color:var(--text3);display:flex;align-items:center;gap:4px}
+.proj-meta-item svg{width:12px;height:12px}
+.proj-add-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:44px;border:2px dashed var(--border2);border-radius:var(--r);background:none;cursor:pointer;color:var(--text3);font-size:13px;font-weight:500;transition:border-color .15s,color .15s;margin-top:4px;font-family:inherit}
+.proj-add-btn:hover{border-color:var(--blue);color:var(--blue)}
+.proj-add-btn svg{width:16px;height:16px}
+.proj-mini-item{margin-bottom:12px}
+.proj-mini-item:last-child{margin-bottom:0}
+.proj-mini-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.proj-mini-name{font-size:13px;font-weight:500;color:var(--text)}
+.proj-mini-pct{font-size:12px;color:var(--text2)}
+
+/* ── Baseball schedule ── */
+.bb-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;box-shadow:var(--shadow);margin-bottom:16px}
+.bb-hdr{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.bb-title{font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:6px}
+.bb-title svg{width:14px;height:14px}
+.heroes-badge{display:flex;align-items:center;gap:6px;margin-left:auto;background:#1a1a2e;color:#fff;font-size:11px;font-weight:600;padding:3px 10px 3px 6px;border-radius:99px}
+.game-row{display:flex;align-items:center;gap:12px;padding:9px 10px;border-radius:var(--rs);transition:background .12s}
+.game-row:hover{background:var(--surface2)}
+.game-row.gtoday{background:color-mix(in srgb,var(--blue-bg) 40%,transparent);border:1px solid var(--border)}
+.g-date{min-width:52px}
+.g-date-main{font-size:13px;font-weight:400;color:var(--text)}
+.g-date-main.bold{font-weight:600;color:var(--blue)}
+.g-date-sub{font-size:10px;color:var(--text3)}
+.g-vs{font-size:11px;color:var(--text3);font-weight:500}
+.g-team{display:flex;align-items:center;gap:8px;flex:1}
+.tlogo{width:32px;height:32px;border-radius:50%;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.tlogo svg{display:block}
+.g-team-info{flex:1}
+.g-team-name{font-size:13px;font-weight:500;color:var(--text)}
+.g-team-sub{font-size:11px;color:var(--text3)}
+.g-time{font-size:12px;color:var(--text2);white-space:nowrap;font-variant-numeric:tabular-nums}
+.g-result{font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;white-space:nowrap}
+.today-lbl{font-size:10px;padding:1px 6px;border-radius:4px;background:#e6f1fb;color:#1e40af;font-weight:500;margin-left:5px}
+.weather-chip{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--text2);background:var(--surface2);padding:3px 10px;border-radius:99px;margin-left:8px}
+
+/* ── WBS ── */
+.wbs-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:300;align-items:flex-start;justify-content:center;padding:24px;overflow-y:auto}
+.wbs-ov.open{display:flex}
+.wbs-box{background:var(--surface);border-radius:var(--r);padding:24px;width:100%;max-width:900px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.wbs-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.wbs-title{font-size:17px;font-weight:600;color:var(--text)}
+.wbs-scroll{overflow-x:auto}
+.wbs-tbl{min-width:600px;border-collapse:collapse;width:100%;font-size:12px}
+.wbs-tbl th{background:var(--surface2);padding:7px 10px;text-align:left;border:1px solid var(--border);color:var(--text2);font-weight:600;font-size:11px;white-space:nowrap}
+.wbs-tbl td{padding:6px 10px;border:1px solid var(--border);color:var(--text)}
+.wbs-wk{min-width:44px;text-align:center}
+.wbs-bar{height:12px;border-radius:3px;margin:2px 0}
+
+/* ── Modal ── */
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:200;align-items:center;justify-content:center;padding:16px}
+.ov.open{display:flex}
+.modal{background:var(--surface);border-radius:var(--r);padding:22px 24px;width:100%;max-width:480px;box-shadow:0 20px 60px rgba(0,0,0,.2);max-height:90vh;overflow-y:auto}
+.modal.wide{max-width:560px}
+.mhdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.mtitle{font-size:16px;font-weight:600;color:var(--text)}
+.xbtn{width:28px;height:28px;border:none;background:none;cursor:pointer;color:var(--text3);display:flex;align-items:center;justify-content:center;border-radius:6px;transition:background .15s;font-family:inherit}
+.xbtn:hover{background:var(--surface2);color:var(--text)}
+.xbtn svg{width:16px;height:16px}
+.ff{margin-bottom:14px}
+.ff label{display:block;font-size:12px;font-weight:500;color:var(--text2);margin-bottom:5px}
+.ff input,.ff select,.ff textarea{width:100%;border:1px solid var(--border2);border-radius:var(--rs);background:var(--bg);color:var(--text);padding:0 12px;font-size:13px;font-family:inherit;outline:none;transition:border-color .15s}
+.ff input,.ff select{height:38px}
+.ff textarea{padding:10px 12px;height:80px;resize:vertical;line-height:1.5}
+.ff input:focus,.ff select:focus,.ff textarea:focus{border-color:var(--blue)}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mfooter{display:flex;gap:8px;margin-top:20px;justify-content:flex-end}
+.btn{height:38px;padding:0 18px;border-radius:var(--rs);font-size:13px;font-weight:500;cursor:pointer;border:none;transition:opacity .15s;font-family:inherit}
+.btn-p{background:var(--blue);color:#fff}
+.btn-p:hover{opacity:.88}
+.btn-g{background:var(--surface2);color:var(--text2);border:1px solid var(--border2)}
+.btn-g:hover{color:var(--text)}
+.btn-d{background:var(--red-bg);color:var(--red-text);border:1px solid var(--red-text)}
+.btn-d:focus{outline:2px solid var(--red);outline-offset:2px}
+.pct-row{display:flex;align-items:center;gap:10px}
+.pct-row input[type=range]{flex:1}
+.pj-cnt-row{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--surface2);border-radius:var(--rs);font-size:13px;color:var(--text2)}
+.pj-cnt-row input{width:60px;height:28px;border:1px solid var(--border2);border-radius:6px;background:var(--bg);color:var(--text);text-align:center;font-size:13px;font-weight:600;font-family:inherit;outline:none;padding:0 6px}
+.pj-cnt-row input:focus{border-color:var(--blue)}
+.pj-pct-auto{font-size:13px;font-weight:600;color:var(--blue);margin-left:4px}
+
+/* ── Confirm ── */
+.cfm-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:400;align-items:center;justify-content:center;padding:16px}
+.cfm-ov.open{display:flex}
+.cfm-box{background:var(--surface);border-radius:var(--r);padding:22px 24px;max-width:360px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.cfm-title{font-size:15px;font-weight:600;color:var(--text);margin-bottom:8px}
+.cfm-desc{font-size:13px;color:var(--text2);margin-bottom:20px}
+.cfm-footer{display:flex;gap:8px;justify-content:flex-end}
+
+/* ── Bottom nav / Drawer ── */
+.bnav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);padding:8px 0 max(8px,env(safe-area-inset-bottom));z-index:100;justify-content:space-around}
+.bni{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 8px;cursor:pointer;color:var(--text3);font-size:10px;font-weight:500;border-radius:var(--rs);transition:color .15s;position:relative;user-select:none}
+.bni.active{color:var(--blue)}
+.bni svg{width:22px;height:22px}
+.bni-badge{position:absolute;top:2px;right:6px;width:16px;height:16px;background:var(--red);color:#fff;font-size:9px;font-weight:600;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid var(--surface)}
+.drov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:150}
+.drov.open{display:block}
+.drawer{position:fixed;top:0;left:0;bottom:0;width:240px;background:var(--surface);z-index:160;transform:translateX(-100%);transition:transform .28s cubic-bezier(.4,0,.2,1);overflow-y:auto}
+.drawer.open{transform:translateX(0)}
+
+/* ── Responsive ── */
+@media(max-width:768px){
+  .sidebar{display:none}.menu-btn{display:flex}
+  .bnav{display:flex}.content{padding:16px 14px 80px}
+  .topbar{padding:0 14px}.metrics-grid{grid-template-columns:repeat(2,1fr);gap:10px}
+  .grid-3{grid-template-columns:1fr}.add-btn span{display:none}.add-btn{padding:0 10px}
+  .card{padding:14px 16px}.tab{font-size:11px;padding:6px 2px}.todo-acts{opacity:1}
+  .fr{grid-template-columns:1fr}.cal-grid{font-size:11px}.cal-ev{font-size:10px;padding:2px 3px}
+}
+@media(max-width:480px){.metrics-grid{grid-template-columns:1fr 1fr}.metric-value{font-size:22px}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.card,.proj-card,.bb-card{animation:fadeUp .3s ease both}
+</style>
+</head>
+<body>
+
+<!-- Decorative world map (pointer-events:none, no z-index blocking) -->
+<div class="world-map-bg" aria-hidden="true"></div>
+
+<div class="app">
+
+<!-- ── Sidebar ─────────────────────────────────────────────── -->
+<aside class="sidebar">
+  <div class="logo-wrap">
+    <div class="logo-globe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+    <span class="logo-text">JK World</span>
+  </div>
+  <div class="nav-sec">메뉴</div>
+  <div class="nav-item active" onclick="switchView('dashboard',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>대시보드</div>
+  <div class="nav-item" onclick="switchView('calendar',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>캘린더</div>
+  <div class="nav-item" onclick="switchView('todos',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 12l2 2 4-4"/><rect x="3" y="3" width="18" height="18" rx="2"/></svg>할 일</div>
+  <div class="nav-item" onclick="switchView('projects',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>프로젝트</div>
+  <div class="nav-item" onclick="switchView('notifications',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>알림<span class="nav-badge" id="sb-badge">3</span></div>
+  <div class="sb-footer"><div class="user-card"><div class="uavatar">나</div><div><div class="uname">내 계정</div><div class="urole">개발팀</div></div></div></div>
+</aside>
+
+<!-- Mobile Drawer -->
+<div class="drov" id="drov" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="logo-wrap" style="padding:16px"><div class="logo-globe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div><span class="logo-text">JK World</span></div>
+  <div style="padding:8px">
+    <div class="nav-item active" id="d-dashboard" onclick="switchView('dashboard',this);closeDrawer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>대시보드</div>
+    <div class="nav-item" id="d-calendar" onclick="switchView('calendar',this);closeDrawer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>캘린더</div>
+    <div class="nav-item" id="d-todos" onclick="switchView('todos',this);closeDrawer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 12l2 2 4-4"/><rect x="3" y="3" width="18" height="18" rx="2"/></svg>할 일</div>
+    <div class="nav-item" id="d-projects" onclick="switchView('projects',this);closeDrawer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>프로젝트</div>
+    <div class="nav-item" id="d-notifications" onclick="switchView('notifications',this);closeDrawer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>알림<span class="nav-badge" style="position:static;margin-left:auto" id="dr-badge">3</span></div>
+  </div>
+</div>
+
+<!-- ── Main ──────────────────────────────────────────────────── -->
+<div class="main">
+  <header class="topbar">
+    <div class="topbar-left">
+      <button class="menu-btn" onclick="openDrawer()" aria-label="메뉴"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg></button>
+      <span class="page-title" id="page-title">대시보드</span>
+    </div>
+    <div class="tb-right">
+      <button class="icon-btn" onclick="switchView('notifications',null)" aria-label="알림"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="bdot" id="notif-dot"></span></button>
+      <button class="add-btn" onclick="openEvModal(null)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg><span>일정 추가</span></button>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="view active" id="view-dashboard">
+      <!-- dashboard world map background (visible only here) -->
+      <div class="dash-map-bg visible" aria-hidden="true"></div>
+      <div style="position:relative;z-index:1">
+        <div class="metrics-grid">
+          <div class="metric-card" onclick="switchView('calendar',null)">
+            <div class="metric-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>이번 주 일정</div>
+            <div class="metric-value" id="m-ev">—</div><div class="metric-sub" style="color:var(--green)" id="m-ev-s"></div>
+          </div>
+          <div class="metric-card" onclick="switchView('todos',null)">
+            <div class="metric-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><rect x="3" y="3" width="18" height="18" rx="2"/></svg>할 일</div>
+            <div class="metric-value" id="m-td">—</div><div class="metric-sub" style="color:var(--amber)" id="m-td-s"></div>
+          </div>
+          <div class="metric-card" onclick="switchView('projects',null)">
+            <div class="metric-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>프로젝트</div>
+            <div class="metric-value" id="m-pj">—</div><div class="metric-sub" style="color:var(--text2)" id="m-pj-s"></div>
+          </div>
+          <div class="metric-card" onclick="switchView('notifications',null)">
+            <div class="metric-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>알림</div>
+            <div class="metric-value" id="unread-count">3</div><div class="metric-sub" style="color:var(--red)">읽지 않음</div>
+          </div>
+        </div>
+        <div class="grid-3">
+          <div class="card">
+            <div style="display:flex;align-items:center;margin-bottom:14px;gap:8px;flex-wrap:wrap">
+              <div class="card-title" style="margin-bottom:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>일정</div>
+              <span id="dash-weather" class="weather-chip" style="display:none"></span>
+              <div style="margin-left:auto;display:flex;align-items:center;gap:4px">
+                <button class="cal-nav" onclick="shiftDF(-1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg></button>
+                <span id="df-label" style="font-size:12px;font-weight:500;color:var(--text2);min-width:64px;text-align:center">오늘</span>
+                <button class="cal-nav" onclick="shiftDF(1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 18l6-6-6-6"/></svg></button>
+              </div>
+            </div>
+            <div id="dash-timeline"></div>
+          </div>
+          <div class="card">
+            <div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>프로젝트 현황</div>
+            <div id="proj-mini"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hdr"><div class="card-title" style="margin-bottom:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><rect x="3" y="3" width="18" height="18" rx="2"/></svg>오늘 할 일</div></div>
+          <div id="dash-todos"></div>
+        </div>
+        <!-- 키움 히어로즈 예정 경기 -->
+        <div class="bb-card">
+          <div class="bb-hdr">
+            <div class="bb-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M5 12s2.5-4 7-4 7 4 7 4-2.5 4-7 4-7-4-7-4z"/><circle cx="12" cy="12" r="2"/></svg>키움 히어로즈 — 앞으로 예정 경기</div>
+            <div class="heroes-badge">
+              <svg width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="9" fill="#1a1a2e"/><text x="9" y="13.5" text-anchor="middle" font-size="9" font-weight="800" fill="#e30613" font-family="Arial,sans-serif">K</text></svg>
+              Kiwoom Heroes
+            </div>
+          </div>
+          <div id="heroes-sched"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CALENDAR -->
+    <div class="view" id="view-calendar">
+      <div class="card" style="margin-bottom:0">
+        <div class="cal-toolbar">
+          <button class="cal-nav" onclick="shiftCal(-1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg></button>
+          <div class="week-lbl" id="week-lbl"></div>
+          <button class="cal-nav" onclick="shiftCal(1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 18l6-6-6-6"/></svg></button>
+          <div class="tgl-grp"><button class="tgl-btn active" id="tbtn-w" onclick="setCalMode('week')">주간</button><button class="tgl-btn" id="tbtn-m" onclick="setCalMode('month')">월간</button></div>
+          <button class="btn btn-g" style="height:32px;padding:0 12px;font-size:12px" onclick="openCatSettings()">카테고리</button>
+        </div>
+        <div id="cal-legend" class="cat-legend"></div>
+        <div style="overflow-x:auto"><div style="min-width:500px" id="cal-wrap"></div></div>
+      </div>
+    </div>
+
+    <!-- TODOS -->
+    <div class="view" id="view-todos">
+      <div class="card" style="margin-bottom:0">
+        <div class="card-hdr">
+          <div class="card-title" style="margin-bottom:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><rect x="3" y="3" width="18" height="18" rx="2"/></svg>할 일 관리</div>
+          <button class="btn btn-p" style="height:32px;padding:0 14px;font-size:12px" onclick="openTodoModal(null)">+ 추가</button>
+        </div>
+        <div class="tab-bar" id="todo-tabs">
+          <div class="tab" id="tab-all" onclick="setTodoTab('all',this)">전체<span class="tab-count" id="tc-all"></span></div>
+          <div class="tab" id="tab-overdue" onclick="setTodoTab('overdue',this)">미완료<span class="tab-count" id="tc-overdue"></span></div>
+          <div class="tab active" id="tab-today" onclick="setTodoTab('today',this)">오늘<span class="tab-count" id="tc-today"></span></div>
+          <div class="tab" id="tab-tomorrow" onclick="setTodoTab('tomorrow',this)">내일<span class="tab-count" id="tc-tomorrow"></span></div>
+          <div class="tab" id="tab-upcoming" onclick="setTodoTab('upcoming',this)">앞으로<span class="tab-count" id="tc-upcoming"></span></div>
+          <div class="tab" id="tab-done" onclick="setTodoTab('done',this)">완료<span class="tab-count" id="tc-done"></span></div>
+        </div>
+        <div id="todo-list"></div>
+      </div>
+    </div>
+
+    <!-- PROJECTS -->
+    <div class="view" id="view-projects">
+      <div id="proj-list"></div>
+      <button class="proj-add-btn" onclick="openProjModal(null)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>새 프로젝트 추가</button>
+    </div>
+
+    <!-- NOTIFICATIONS -->
+    <div class="view" id="view-notifications">
+      <div class="card" style="margin-bottom:0">
+        <div class="card-hdr">
+          <div class="card-title" style="margin-bottom:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>알림 센터</div>
+          <button class="btn btn-g" style="height:30px;font-size:12px;padding:0 12px" onclick="clearAll()">모두 읽음</button>
+        </div>
+        <div id="notif-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ── Bottom Nav ─────────────────────────────────────────────── -->
+<nav class="bnav">
+  <div class="bni active" id="bn-dashboard" onclick="switchView('dashboard',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>홈</div>
+  <div class="bni" id="bn-calendar" onclick="switchView('calendar',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>캘린더</div>
+  <div class="bni" id="bn-todos" onclick="switchView('todos',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 12l2 2 4-4"/><rect x="3" y="3" width="18" height="18" rx="2"/></svg>할 일</div>
+  <div class="bni" id="bn-projects" onclick="switchView('projects',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>프로젝트</div>
+  <div class="bni" id="bn-notifications" onclick="switchView('notifications',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>알림<span class="bni-badge" id="bn-badge">3</span></div>
+</nav>
+
+<!-- ── Event Modal ──────────────────────────────────────────── -->
+<div class="ov" id="ev-modal">
+  <div class="modal">
+    <div class="mhdr"><div class="mtitle" id="ev-modal-title">일정 추가</div><button class="xbtn" onclick="closeEvModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
+    <div class="ff"><label>제목</label><input type="text" id="ev-title" placeholder="일정 제목"></div>
+    <div class="fr">
+      <div class="ff" style="margin-bottom:0"><label>날짜</label><input type="date" id="ev-date"></div>
+      <div class="ff" style="margin-bottom:0"><label>시간</label><input type="time" id="ev-time"></div>
+    </div>
+    <div style="height:14px"></div>
+    <div class="fr">
+      <div class="ff" style="margin-bottom:0"><label>카테고리</label><select id="ev-cat"></select></div>
+      <div class="ff" style="margin-bottom:0"><label>알림</label><select id="ev-remind"><option value="10">10분 전</option><option value="30">30분 전</option><option value="60">1시간 전</option><option value="1440">1일 전</option></select></div>
+    </div>
+    <div class="mfooter"><button class="btn btn-d" id="ev-del-btn" onclick="deleteEvent()" style="margin-right:auto;display:none">삭제</button><button class="btn btn-g" onclick="closeEvModal()">취소</button><button class="btn btn-p" onclick="saveEvent()">저장</button></div>
+  </div>
+</div>
+
+<!-- ── Todo Modal ───────────────────────────────────────────── -->
+<div class="ov" id="td-modal">
+  <div class="modal">
+    <div class="mhdr"><div class="mtitle" id="td-modal-title">할 일 추가</div><button class="xbtn" onclick="closeTdModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
+    <div class="ff"><label>내용</label><input type="text" id="td-text" placeholder="할 일 내용"></div>
+    <div class="fr">
+      <div class="ff" style="margin-bottom:0"><label>마감일</label><input type="date" id="td-due"></div>
+      <div class="ff" style="margin-bottom:0"><label>우선순위</label><select id="td-pri"><option value="urgent">긴급</option><option value="high">높음</option><option value="normal" selected>보통</option><option value="low">낮음</option></select></div>
+    </div>
+    <div class="mfooter"><button class="btn btn-g" onclick="closeTdModal()">취소</button><button class="btn btn-p" onclick="saveTodo()">저장</button></div>
+  </div>
+</div>
+
+<!-- ── Project Modal ─────────────────────────────────────────── -->
+<div class="ov" id="pj-modal">
+  <div class="modal wide">
+    <div class="mhdr"><div class="mtitle" id="pj-modal-title">프로젝트 추가</div><button class="xbtn" onclick="closePjModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
+    <!-- 1. 프로젝트명 -->
+    <div class="ff"><label>프로젝트명</label><input type="text" id="pj-name" placeholder="프로젝트 이름"></div>
+    <!-- 2. 시작일 / 마감일 (프로젝트명 바로 아래) -->
+    <div class="fr">
+      <div class="ff" style="margin-bottom:0"><label>시작일</label><input type="date" id="pj-start"></div>
+      <div class="ff" style="margin-bottom:0"><label>마감일</label><input type="date" id="pj-end"></div>
+    </div>
+    <div style="height:14px"></div>
+    <!-- 3. 목표 -->
+    <div class="ff"><label>목표</label><textarea id="pj-goal" placeholder="이 프로젝트의 목표를 입력하세요"></textarea></div>
+    <!-- 4. 진척률 계산 -->
+    <div class="ff">
+      <label>진척률 계산</label>
+      <div class="pj-cnt-row">목표<input type="number" id="pj-target" value="10" min="1" oninput="calcPct()"> / 완료<input type="number" id="pj-done-n" value="0" min="0" oninput="calcPct()"> → <span class="pj-pct-auto" id="pj-pct-disp">0%</span>
+      </div>
+    </div>
+    <!-- 5. 진행 내용 -->
+    <div class="ff">
+      <label style="margin-bottom:10px;display:block">진행 내용</label>
+      <!-- 컬럼 헤더 -->
+      <div style="display:grid;grid-template-columns:1fr 80px 112px 28px;gap:6px;padding:0 10px;margin-bottom:4px">
+        <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px">내용</div>
+        <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;text-align:center">상태</div>
+        <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;text-align:center">완료일</div>
+        <div></div>
+      </div>
+      <!-- 기존 항목 목록 -->
+      <div id="pj-items"></div>
+      <!-- 새 항목 입력 행 -->
+      <div style="display:grid;grid-template-columns:1fr 80px 112px 28px;gap:6px;margin-top:6px;align-items:center;padding:8px 10px;background:var(--surface2);border-radius:var(--rs);border:1px dashed var(--border2)">
+        <input type="text" id="pj-ni-text" placeholder="진행 내용 입력..."
+          style="height:32px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--surface);color:var(--text);padding:0 8px;font-size:12px;font-family:inherit;outline:none;width:100%">
+        <select id="pj-ni-st"
+          style="height:32px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--surface);color:var(--text);padding:0 4px;font-size:12px;font-family:inherit;outline:none;width:100%;text-align:center">
+          <option value="planned">예정</option>
+          <option value="active">진행중</option>
+          <option value="done">완료</option>
+        </select>
+        <input type="date" id="pj-ni-dt"
+          style="height:32px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--surface);color:var(--text);padding:0 6px;font-size:11px;font-family:inherit;outline:none;width:100%">
+        <button onclick="addPjItem()" title="추가"
+          style="width:28px;height:28px;border:none;background:var(--blue);color:#fff;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="mfooter"><button class="btn btn-g" onclick="closePjModal()">취소</button><button class="btn btn-p" onclick="saveProject()">저장</button></div>
+  </div>
+</div>
+
+<!-- ── Category Modal ────────────────────────────────────────── -->
+<div class="ov" id="cat-modal">
+  <div class="modal" style="max-width:380px">
+    <div class="mhdr"><div class="mtitle">카테고리 색상</div><button class="xbtn" onclick="closeCatModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
+    <div id="cat-list"></div>
+    <div class="mfooter"><button class="btn btn-p" onclick="saveCatSettings()">저장</button></div>
+  </div>
+</div>
+
+<!-- ── WBS Overlay ────────────────────────────────────────────── -->
+<div class="wbs-ov" id="wbs-ov">
+  <div class="wbs-box">
+    <div class="wbs-hdr"><div class="wbs-title" id="wbs-title"></div><button class="xbtn" onclick="closeWbs()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
+    <div class="wbs-scroll"><div id="wbs-content"></div></div>
+  </div>
+</div>
+
+<!-- ── Confirm ───────────────────────────────────────────────── -->
+<div class="cfm-ov" id="cfm-ov">
+  <div class="cfm-box">
+    <div class="cfm-title" id="cfm-title">삭제하시겠습니까?</div>
+    <div class="cfm-desc" id="cfm-desc">이 작업은 되돌릴 수 없습니다.</div>
+    <div class="cfm-footer"><button class="btn btn-g" onclick="closeCfm()">취소</button><button class="btn btn-d" id="cfm-del-btn" onclick="doCfm()">삭제</button></div>
+  </div>
+</div>
+
+<script>
+// ════════ Constants ════════
+const TODAY='2026-05-20', TOMORROW='2026-05-21';
+const DAYS=['일','월','화','수','목','금','토'];
+const MONTHS=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+const VNAMES={dashboard:'대시보드',calendar:'캘린더',todos:'할 일',projects:'프로젝트',notifications:'알림'};
+const TIMES=['09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00'];
+const WMO={0:'☀️',1:'🌤',2:'⛅',3:'☁️',45:'🌫',51:'🌦',53:'🌦',61:'🌧',63:'🌧',80:'🌦',81:'🌧',95:'⛈'};
+const SC={done:{bg:'var(--green-bg)',tc:'var(--green-text)',lbl:'완료'},active:{bg:'var(--blue-bg)',tc:'var(--blue-text)',lbl:'진행중'},planned:{bg:'var(--surface2)',tc:'var(--text2)',lbl:'예정'}};
+const PRI={urgent:{bg:'var(--red-bg)',tc:'var(--red-text)',lbl:'긴급'},high:{bg:'var(--amber-bg)',tc:'var(--amber-text)',lbl:'높음'},normal:{bg:'var(--surface2)',tc:'var(--text2)',lbl:'보통'},low:{bg:'var(--teal-bg)',tc:'var(--teal-text)',lbl:'낮음'}};
+const DF_MODES=['overdue','today','tomorrow','upcoming','all'];
+const DF_LABELS=['미완료','오늘','내일','앞으로','전체'];
+
+// ════════ Category Config ════════
+let cats={
+  exec_meeting:{lbl:'임원회의',color:'#7c3aed'},
+  dept_meeting:{lbl:'부문회의',color:'#2563eb'},
+  dev_meeting:{lbl:'개발회의',color:'#0891b2'},
+  ext_meeting:{lbl:'외부회의',color:'#d97706'},
+  work:{lbl:'업무',color:'#16a34a'},
+  review:{lbl:'리뷰',color:'#9333ea'},
+  family:{lbl:'가족',color:'#e11d48'},
+  personal:{lbl:'개인',color:'#f59e0b'},
+};
+
+// ════════ KBO Teams ════════
+const KBO={
+  'LG':   {name:'LG 트윈스',   s:`<circle cx="15" cy="15" r="15" fill="#C30452"/><text x="15" y="20" text-anchor="middle" font-size="11" font-weight="800" fill="#fff" font-family="Arial">LG</text>`},
+  'KT':   {name:'KT 위즈',     s:`<circle cx="15" cy="15" r="15" fill="#1a1a1a"/><text x="15" y="20" text-anchor="middle" font-size="11" font-weight="800" fill="#e40000" font-family="Arial">kt</text>`},
+  'SSG':  {name:'SSG 랜더스',  s:`<circle cx="15" cy="15" r="15" fill="#CE0E2D"/><text x="15" y="20" text-anchor="middle" font-size="10" font-weight="800" fill="#fff" font-family="Arial">SSG</text>`},
+  'NC':   {name:'NC 다이노스',  s:`<circle cx="15" cy="15" r="15" fill="#1B4C9B"/><text x="15" y="20" text-anchor="middle" font-size="11" font-weight="800" fill="#c4a24e" font-family="Arial">NC</text>`},
+  '두산': {name:'두산 베어스',  s:`<circle cx="15" cy="15" r="15" fill="#131230"/><text x="15" y="20.5" text-anchor="middle" font-size="13" font-weight="800" fill="#fff" font-family="sans-serif">두</text>`},
+  '롯데': {name:'롯데 자이언츠',s:`<circle cx="15" cy="15" r="15" fill="#002060"/><text x="15" y="20.5" text-anchor="middle" font-size="13" font-weight="800" fill="#e30613" font-family="sans-serif">롯</text>`},
+  '삼성': {name:'삼성 라이온즈',s:`<circle cx="15" cy="15" r="15" fill="#074CA1"/><text x="15" y="20.5" text-anchor="middle" font-size="13" font-weight="800" fill="#fff" font-family="sans-serif">삼</text>`},
+  '한화': {name:'한화 이글스',  s:`<circle cx="15" cy="15" r="15" fill="#FF6600"/><text x="15" y="20.5" text-anchor="middle" font-size="13" font-weight="800" fill="#fff" font-family="sans-serif">한</text>`},
+  'KIA':  {name:'KIA 타이거즈', s:`<circle cx="15" cy="15" r="15" fill="#EA0029"/><text x="15" y="20" text-anchor="middle" font-size="10" font-weight="800" fill="#05141F" font-family="Arial">KIA</text>`},
+  '키움': {name:'키움 히어로즈',s:`<circle cx="15" cy="15" r="15" fill="#1a1a2e"/><text x="15" y="20" text-anchor="middle" font-size="14" font-weight="800" fill="#e30613" font-family="Arial">K</text>`},
+};
+
+// ════════ State ════════
+let calMode='week', weekOff=0, monthOff=0;
+let unread=3, todoTab='today', dfMode=1;
+let editEvId=null, editTdId=null, editPjId=null, cfmCb=null;
+let tmpItems=[];
+let nid=200; function uid(){return ++nid;}
+
+// ════════ Data ════════
+let events=[
+  {id:1,date:'2026-05-18',time:'09:00',title:'팀 스탠드업',cat:'dev_meeting'},
+  {id:2,date:'2026-05-18',time:'14:00',title:'임원 보고',cat:'exec_meeting'},
+  {id:3,date:'2026-05-19',time:'10:00',title:'디자인 리뷰',cat:'review'},
+  {id:4,date:'2026-05-20',time:'09:00',title:'아침 스탠드업',cat:'dev_meeting'},
+  {id:5,date:'2026-05-20',time:'14:00',title:'클라이언트 미팅',cat:'ext_meeting'},
+  {id:6,date:'2026-05-20',time:'16:00',title:'스프린트 계획',cat:'work'},
+  {id:7,date:'2026-05-21',time:'11:00',title:'코드 리뷰',cat:'review'},
+  {id:8,date:'2026-05-21',time:'15:00',title:'배포 점검',cat:'work'},
+  {id:9,date:'2026-05-22',time:'10:00',title:'주간 보고',cat:'dept_meeting'},
+  {id:10,date:'2026-05-22',time:'14:00',title:'팀 회고',cat:'dev_meeting'},
+];
+let notifs=[
+  {id:1,title:'클라이언트 미팅 30분 후 시작',desc:'Zoom 링크를 확인해 주세요',time:'13:30 · 오늘',type:'meeting',read:false},
+  {id:2,title:'PR 코드 리뷰 마감 임박',desc:'오늘 오후 6시까지 완료 필요',time:'12:00 · 오늘',type:'alert',read:false},
+  {id:3,title:'대시보드 개선 88% 달성',desc:'목표까지 12% 남았습니다',time:'09:15 · 오늘',type:'success',read:false},
+  {id:4,title:'스프린트 계획 회의 내일 오전',desc:'회의실 A 예약 완료',time:'어제 · 17:00',type:'calendar',read:true},
+];
+let todos=[
+  {id:1,text:'API 문서 업데이트',done:true,pri:'normal',due:'2026-05-19',doneDate:'2026-05-19'},
+  {id:2,text:'버그 리포트 검토',done:true,pri:'high',due:'2026-05-20',doneDate:'2026-05-20'},
+  {id:3,text:'PR 코드 리뷰',done:false,pri:'urgent',due:'2026-05-19',doneDate:null},
+  {id:4,text:'배포 파이프라인 점검',done:false,pri:'high',due:'2026-05-20',doneDate:null},
+  {id:5,text:'팀 회고 자료 준비',done:false,pri:'normal',due:'2026-05-21',doneDate:null},
+  {id:6,text:'신규 기능 스펙 작성',done:false,pri:'normal',due:'2026-05-25',doneDate:null},
+  {id:7,text:'외부 API 연동 검토',done:false,pri:'low',due:'2026-05-28',doneDate:null},
+];
+let projects=[
+  {id:1,name:'모바일 앱 리뉴얼',goal:'기존 앱 UX 전면 개선 및 성능 최적화로 MAU 20% 향상',target:10,doneN:7,
+   items:[{text:'UI 컴포넌트 설계',status:'done',date:'2026-04-10'},{text:'로그인/홈 화면',status:'done',date:'2026-04-25'},{text:'탐색/검색 화면',status:'done',date:'2026-05-08'},{text:'결제 모듈 연동',status:'active',date:'2026-05-30'},{text:'마이페이지 구현',status:'planned',date:'2026-06-10'}],
+   start:'2026-03-01',end:'2026-06-30'},
+  {id:2,name:'백엔드 마이그레이션',goal:'레거시 모놀리식 → 마이크로서비스 아키텍처 전환',target:8,doneN:4,
+   items:[{text:'인증 서비스 분리',status:'done',date:'2026-03-20'},{text:'상품 서비스 개발',status:'active',date:'2026-05-28'},{text:'주문 서비스 분리',status:'planned',date:'2026-06-20'},{text:'결제 서비스 분리',status:'planned',date:'2026-07-10'}],
+   start:'2026-02-01',end:'2026-08-31'},
+  {id:3,name:'대시보드 개선',goal:'내부 운영팀용 실시간 데이터 시각화 대시보드 구축',target:8,doneN:7,
+   items:[{text:'KPI 위젯 구현',status:'done',date:'2026-04-15'},{text:'차트 컴포넌트 개발',status:'done',date:'2026-04-30'},{text:'알림 시스템 연동',status:'done',date:'2026-05-10'},{text:'최종 QA 및 배포',status:'active',date:'2026-05-25'}],
+   start:'2026-04-01',end:'2026-05-31'},
+];
+// ════════ KBO 2026 실제 데이터 (5/18 기준) ════════
+// 순위: 1KT 2LG 3삼성 4SSG 5KIA 6한화 7두산 8NC 9키움 10롯데
+// 출처: 나무위키 순위경쟁 문서(5/18기준 3강: KT/LG/삼성, 9위 키움, 10위 롯데)
+const KBO_STANDINGS = [
+  {rank:1,  team:'KT',   name:'KT 위즈',     w:25, d:1, l:12, pct:.676, diff:0},
+  {rank:2,  team:'LG',   name:'LG 트윈스',   w:23, d:0, l:15, pct:.605, diff:3},
+  {rank:3,  team:'삼성', name:'삼성 라이온즈',w:22, d:1, l:15, pct:.595, diff:3.5},
+  {rank:4,  team:'SSG',  name:'SSG 랜더스',  w:20, d:1, l:17, pct:.541, diff:6},
+  {rank:5,  team:'KIA',  name:'KIA 타이거즈',w:17, d:1, l:19, pct:.472, diff:9},
+  {rank:6,  team:'한화', name:'한화 이글스',  w:16, d:0, l:20, pct:.444, diff:10.5},
+  {rank:7,  team:'두산', name:'두산 베어스',  w:16, d:1, l:21, pct:.432, diff:11},
+  {rank:8,  team:'NC',   name:'NC 다이노스',  w:15, d:1, l:21, pct:.417, diff:11.5},
+  {rank:9,  team:'키움', name:'키움 히어로즈',w:10, d:1, l:26, pct:.278, diff:15.5},
+  {rank:10, team:'롯데', name:'롯데 자이언츠',w:10, d:1, l:27, pct:.270, diff:16},
+];
+
+// 키움 5월 20일 이후 예정 경기 (나무위키 키움/2026년/5월 기준)
+// 5/20~21: SSG 홈(고척), 5/22~24: LG 원정(잠실), 5/26~28: KIA 홈(고척)
+const HEROES = [
+  {date:'2026-05-20',time:'18:30',opp:'SSG', home:true, venue:'고척',result:null},
+  {date:'2026-05-21',time:'18:30',opp:'SSG', home:true, venue:'고척',result:null},
+  {date:'2026-05-22',time:'18:30',opp:'LG',  home:false,venue:'잠실',result:null},
+  {date:'2026-05-23',time:'18:30',opp:'LG',  home:false,venue:'잠실',result:null},
+  {date:'2026-05-24',time:'14:00',opp:'LG',  home:false,venue:'잠실',result:null},
+  {date:'2026-05-26',time:'18:30',opp:'KIA', home:true, venue:'고척',result:null},
+];
+let weatherMap={};
+
+// ════════ Helpers ════════
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function ds(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function fmtS(d){if(!d)return'';const x=new Date(d);return`${x.getMonth()+1}/${x.getDate()}`}
+function fmtF(d){if(!d)return'';const x=new Date(d);return`${x.getFullYear()}.${String(x.getMonth()+1).padStart(2,'0')}.${String(x.getDate()).padStart(2,'0')}`}
+function hex2rgba(h,a){const r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);return`rgba(${r},${g},${b},${a})`}
+function catC(k){return(cats[k]||{color:'#888'}).color}
+function catL(k){return(cats[k]||{lbl:k}).lbl}
+function pjPct(p){return p.target?Math.min(100,Math.round((p.doneN||0)/p.target*100)):0}
+function pjBarC(p){const v=pjPct(p);return v>=80?'#16a34a':v>=50?'#2563eb':'#d97706'}
+
+// ════════ Weather (Seoul) ════════
+async function fetchWeather(){
+  try{
+    const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude=37.5665&longitude=126.9780&daily=weathercode,temperature_2m_max&timezone=Asia%2FSeoul&forecast_days=14');
+    if(!r.ok)throw 0;
+    const d=await r.json();
+    d.daily.time.forEach((dt,i)=>{
+      const icon=WMO[d.daily.weathercode[i]]||'🌡';
+      weatherMap[dt]=`${icon} ${Math.round(d.daily.temperature_2m_max[i])}°`;
+    });
+  }catch{}
+  const w=weatherMap[TODAY]||'';
+  const el=document.getElementById('dash-weather');
+  if(el&&w){el.textContent='서울 '+w;el.style.display='inline-flex';}
+  renderCalendar();
+}
+
+// ════════ Navigation ════════
+function switchView(name,el){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  document.getElementById('page-title').textContent=VNAMES[name]||name;
+  document.querySelectorAll('.sidebar .nav-item,.bni').forEach(n=>n.classList.remove('active'));
+  document.querySelectorAll('.drawer .nav-item').forEach(n=>n.classList.remove('active'));
+  const s=document.querySelector(`.sidebar .nav-item[onclick*="'${name}'"]`);if(s)s.classList.add('active');
+  const b=document.getElementById('bn-'+name);if(b)b.classList.add('active');
+  const dr=document.getElementById('d-'+name);if(dr)dr.classList.add('active');
+  if(name==='dashboard')renderDash();
+  if(name==='calendar')renderCalendar();
+  if(name==='todos'){todoTab='today';document.querySelectorAll('#todo-tabs .tab').forEach(t=>t.classList.remove('active'));document.getElementById('tab-today').classList.add('active');updateTC();renderTodos();}
+  if(name==='projects')renderProjects();
+  if(name==='notifications')renderNotifs();
+}
+function openDrawer(){document.getElementById('drawer').classList.add('open');document.getElementById('drov').classList.add('open')}
+function closeDrawer(){document.getElementById('drawer').classList.remove('open');document.getElementById('drov').classList.remove('open')}
+
+// ════════ Dashboard ════════
+function shiftDF(d){dfMode=(dfMode+d+5)%5;renderDashTL();}
+function renderDashTL(){
+  const lbl=DF_LABELS[dfMode];
+  document.getElementById('df-label').textContent=lbl;
+  const m=DF_MODES[dfMode];
+  let evs=m==='overdue'?events.filter(e=>e.date<TODAY)
+    :m==='today'?events.filter(e=>e.date===TODAY)
+    :m==='tomorrow'?events.filter(e=>e.date===TOMORROW)
+    :m==='upcoming'?events.filter(e=>e.date>TOMORROW)
+    :[...events];
+  evs.sort((a,b)=>a.date===b.date?a.time.localeCompare(b.time):a.date.localeCompare(b.date));
+  const el=document.getElementById('dash-timeline');if(!el)return;
+  if(!evs.length){el.innerHTML='<div style="color:var(--text3);font-size:13px;padding:12px 0">일정이 없습니다</div>';return;}
+  el.innerHTML=evs.map(e=>{
+    const past=e.date<TODAY||(e.date===TODAY&&e.time<'14:00');
+    const col=catC(e.cat);
+    return`<div class="t-item"><div class="t-time">${m!=='today'?`<div>${fmtS(e.date)}</div>`:''}<div>${e.time}</div></div>
+    <div class="t-dot" style="background:${past?'#16a34a':col}"></div>
+    <div style="flex:1"><div class="t-title">${esc(e.title)}${past?`<span class="badge" style="background:var(--green-bg);color:var(--green-text)">완료</span>`:''}</div>
+    <div class="t-meta">${catL(e.cat)}</div></div></div>`;
+  }).join('');
+}
+function renderDash(){
+  renderDashTL();
+  const pm=document.getElementById('proj-mini');
+  if(pm)pm.innerHTML=projects.length?projects.map(p=>{const pct=pjPct(p);return`<div class="proj-mini-item"><div class="proj-mini-hdr"><div class="proj-mini-name">${esc(p.name)}</div><div class="proj-mini-pct">${pct}%</div></div><div class="prog"><div class="prog-fill" style="width:${pct}%;background:${pjBarC(p)}"></div></div></div>`}).join(''):'<div style="color:var(--text3);font-size:13px">프로젝트가 없습니다</div>';
+  const dt=document.getElementById('dash-todos');
+  if(dt){const tds=todos.filter(t=>!t.done&&t.due===TODAY);dt.innerHTML=tds.length?tds.map(tdHTML).join(''):'<div style="color:var(--text3);font-size:13px;padding:8px 0">오늘 할 일이 없습니다 🎉</div>';}
+  renderHeroes();updateMetrics();
+}
+function updateMetrics(){
+  const ws=ds(getWkDates(0)[0]),we=ds(getWkDates(0)[6]);
+  const we_=events.filter(e=>e.date>=ws&&e.date<=we);
+  const el1=document.getElementById('m-ev');if(el1)el1.textContent=we_.length;
+  const el1s=document.getElementById('m-ev-s');if(el1s)el1s.textContent=we_.filter(e=>e.date<TODAY).length+'개 완료';
+  const rem=todos.filter(t=>!t.done).length;
+  const el2=document.getElementById('m-td');if(el2)el2.textContent=todos.length;
+  const el2s=document.getElementById('m-td-s');if(el2s)el2s.textContent=rem+'개 남음';
+  const el3=document.getElementById('m-pj');if(el3)el3.textContent=projects.length;
+  const ending=projects.filter(p=>p.end&&p.end>=TODAY&&p.end<=TOMORROW).length;
+  const el3s=document.getElementById('m-pj-s');if(el3s)el3s.textContent=ending?`마감 ${ending}개`:'진행 중';
+}
+
+// ════════ KBO 순위표 ════════
+function renderKboStandings(){
+  const el=document.getElementById('kbo-standings');if(!el)return;
+  const heroesRank=KBO_STANDINGS.find(t=>t.team==='키움');
+  let html=`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">
+    <thead><tr style="background:var(--surface2)">
+      <th style="padding:6px 8px;text-align:center;border:1px solid var(--border);color:var(--text2);font-weight:600;white-space:nowrap">순위</th>
+      <th style="padding:6px 8px;text-align:left;border:1px solid var(--border);color:var(--text2);font-weight:600">팀</th>
+      <th style="padding:6px 8px;text-align:center;border:1px solid var(--border);color:var(--text2);font-weight:600">승</th>
+      <th style="padding:6px 8px;text-align:center;border:1px solid var(--border);color:var(--text2);font-weight:600">무</th>
+      <th style="padding:6px 8px;text-align:center;border:1px solid var(--border);color:var(--text2);font-weight:600">패</th>
+      <th style="padding:6px 8px;text-align:center;border:1px solid var(--border);color:var(--text2);font-weight:600">승률</th>
+      <th style="padding:6px 8px;text-align:center;border:1px solid var(--border);color:var(--text2);font-weight:600">게임차</th>
+    </tr></thead><tbody>`;
+  KBO_STANDINGS.forEach(t=>{
+    const isHeroes=t.team==='키움';
+    const rowBg=isHeroes?'background:color-mix(in srgb,var(--red-bg) 50%,transparent);font-weight:500':'';
+    const team=KBO[t.team]||{name:t.name,s:`<circle cx="12" cy="12" r="12" fill="#888"/>`};
+    html+=`<tr style="${rowBg}">
+      <td style="padding:5px 8px;text-align:center;border:1px solid var(--border);color:${t.rank<=3?'var(--blue)':t.rank>=9?'var(--red-text)':'var(--text)'};">${t.rank}</td>
+      <td style="padding:5px 8px;border:1px solid var(--border)">
+        <div style="display:flex;align-items:center;gap:6px">
+          <svg width="22" height="22" viewBox="0 0 30 30" style="flex-shrink:0">${team.s}</svg>
+          <span style="color:var(--text);white-space:nowrap">${t.name}</span>
+          ${isHeroes?'<span style="font-size:10px;background:#1a1a2e;color:#e30613;padding:1px 5px;border-radius:3px;font-weight:700">MY</span>':''}
+        </div>
+      </td>
+      <td style="padding:5px 8px;text-align:center;border:1px solid var(--border);color:var(--green-text)">${t.w}</td>
+      <td style="padding:5px 8px;text-align:center;border:1px solid var(--border);color:var(--text3)">${t.d}</td>
+      <td style="padding:5px 8px;text-align:center;border:1px solid var(--border);color:var(--red-text)">${t.l}</td>
+      <td style="padding:5px 8px;text-align:center;border:1px solid var(--border);color:var(--text)">${t.pct.toFixed(3)}</td>
+      <td style="padding:5px 8px;text-align:center;border:1px solid var(--border);color:var(--text2)">${t.diff===0?'-':t.diff}</td>
+    </tr>`;
+  });
+  html+=`</tbody></table></div>
+  <div style="font-size:11px;color:var(--text3);margin-top:6px;text-align:right">※ 2026년 5월 18일 기준</div>`;
+  el.innerHTML=html;
+}
+function renderHeroes(){
+  const el=document.getElementById('heroes-sched');if(!el)return;
+  el.innerHTML=HEROES.map(g=>{
+    const team=KBO[g.opp]||{name:g.opp,s:`<circle cx="15" cy="15" r="15" fill="#888"/>`};
+    const d=new Date(g.date);
+    const mm=d.getMonth()+1,dd=d.getDate(),day=DAYS[d.getDay()];
+    const isToday=g.date===TODAY;
+    let right=g.result
+      ?(g.result==='W'?`<span class="g-result" style="background:var(--green-bg);color:var(--green-text)">승</span>`
+      :g.result==='L'?`<span class="g-result" style="background:var(--red-bg);color:var(--red-text)">패</span>`
+      :`<span class="g-result" style="background:var(--surface2);color:var(--text2)">무</span>`)
+      :`<span class="g-time">${g.time}</span>`;
+    return`<div class="game-row${isToday?' gtoday':''}">
+      <div class="g-date"><div class="g-date-main${isToday?' bold':''}">${mm}/${dd}</div><div class="g-date-sub">${day}요일</div></div>
+      <div class="g-vs">VS</div>
+      <div class="g-team">
+        <div class="tlogo"><svg width="30" height="30" viewBox="0 0 30 30">${team.s}</svg></div>
+        <div class="g-team-info">
+          <div class="g-team-name">${esc(team.name)}${isToday?'<span class="today-lbl">오늘</span>':''}</div>
+          <div class="g-team-sub">${g.home?'홈':'원정'} · ${g.venue}</div>
+        </div>
+      </div>
+      ${right}
+    </div>`;
+  }).join('');
+}
+
+// ════════ Calendar ════════
+function getWkDates(off){
+  const base=new Date(2026,4,20),dow=base.getDay();
+  const mon=new Date(base);mon.setDate(base.getDate()-dow+1+off*7);
+  return Array.from({length:7},(_,i)=>{const d=new Date(mon);d.setDate(mon.getDate()+i);return d;});
+}
+function setCalMode(m){calMode=m;document.getElementById('tbtn-w').classList.toggle('active',m==='week');document.getElementById('tbtn-m').classList.toggle('active',m==='month');renderCalendar();}
+function shiftCal(d){if(calMode==='week')weekOff+=d;else monthOff+=d;renderCalendar();}
+function renderCalLegend(){
+  const el=document.getElementById('cal-legend');if(!el)return;
+  el.innerHTML=Object.entries(cats).map(([k,v])=>`<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;padding:2px 8px;border-radius:99px;background:${hex2rgba(v.color,.12)};color:${v.color}"><span style="width:7px;height:7px;border-radius:50%;background:${v.color};display:inline-block"></span>${v.lbl}</span>`).join('');
+}
+function renderCalendar(){
+  renderCalLegend();
+  if(calMode==='week')renderWeekCal();else renderMonthCal();
+}
+function renderWeekCal(){
+  const dates=getWkDates(weekOff);const s=dates[0],e=dates[6];
+  document.getElementById('week-lbl').textContent=`${s.getMonth()+1}월 ${s.getDate()}일 – ${e.getMonth()+1}월 ${e.getDate()}일`;
+  let h='<div class="cal-grid wk"><div class="cal-hd"></div>';
+  dates.forEach(d=>{
+    const dstr=ds(d),isT=dstr===TODAY,w=weatherMap[dstr]||'';
+    h+=`<div class="cal-hd${isT?' today':''}"><div style="font-size:11px">${DAYS[d.getDay()]}</div><div class="cal-dn">${d.getDate()}</div>${w?`<div class="cal-wx">${w}</div>`:''}</div>`;
+  });
+  TIMES.forEach(t=>{
+    h+=`<div class="cal-timecol">${t}</div>`;
+    dates.forEach(d=>{
+      const dstr=ds(d),isT=dstr===TODAY;
+      const evs=events.filter(e=>e.date===dstr&&e.time===t);
+      h+=`<div class="cal-cell${isT?' today-col':''}" data-date="${dstr}" data-time="${t}" onclick="cellClick('${dstr}','${t}',event)" ondragover="dragOver(event,this)" ondrop="dropEv(event,this)">`;
+      evs.forEach(ev=>{const col=catC(ev.cat);h+=`<div class="cal-ev" style="background:${hex2rgba(col,.15)};color:${col}" draggable="true" data-eid="${ev.id}" onclick="event.stopPropagation();openEvModal(${ev.id})" ondragstart="dragStart(event,${ev.id})">${esc(ev.title)}</div>`;});
+      h+='</div>';
+    });
+  });
+  h+='</div>';document.getElementById('cal-wrap').innerHTML=h;
+}
+function renderMonthCal(){
+  const base=new Date(2026,4+monthOff,1);const yr=base.getFullYear(),mo=base.getMonth();
+  document.getElementById('week-lbl').textContent=`${yr}년 ${MONTHS[mo]}`;
+  const dow=base.getDay(),last=new Date(yr,mo+1,0).getDate();
+  let h='<div class="month-grid">';
+  DAYS.forEach((d,i)=>h+=`<div class="month-hd${i===0||i===6?' we':''}">${d}</div>`);
+  let day=1-dow;
+  for(let r=0;r<6;r++){for(let c=0;c<7;c++,day++){
+    const cur=new Date(yr,mo,day),dstr=ds(cur),inM=cur.getMonth()===mo,isT=dstr===TODAY;
+    const evs=events.filter(e=>e.date===dstr);
+    h+=`<div class="month-cell${!inM?' other-m':''}${isT?' today-mc':''}" onclick="mCellClick('${dstr}')">`;
+    h+=`<div class="month-dn${isT?' today-n':''}">${cur.getDate()}</div>`;
+    evs.slice(0,3).forEach(ev=>{const col=catC(ev.cat);h+=`<div class="month-ev" style="background:${hex2rgba(col,.18)};color:${col}" onclick="event.stopPropagation();openEvModal(${ev.id})">${esc(ev.title)}</div>`;});
+    if(evs.length>3)h+=`<div class="month-more">+${evs.length-3}개</div>`;
+    h+='</div>';
+  }}
+  h+='</div>';document.getElementById('cal-wrap').innerHTML=h;
+}
+function cellClick(date,time,e){if(e&&e.target.classList.contains('cal-ev'))return;openEvModal(null,date,time);}
+function mCellClick(date){openEvModal(null,date);}
+
+// ════════ Drag & Drop ════════
+let dragId=null;
+function dragStart(e,id){dragId=id;setTimeout(()=>{const el=document.querySelector(`[data-eid="${id}"]`);if(el)el.classList.add('dragging');},0);}
+function dragOver(e,cell){e.preventDefault();document.querySelectorAll('.drag-over').forEach(c=>c.classList.remove('drag-over'));cell.classList.add('drag-over');}
+function dropEv(e,cell){
+  e.preventDefault();document.querySelectorAll('.drag-over').forEach(c=>c.classList.remove('drag-over'));
+  if(!dragId)return;const ev=events.find(x=>x.id===dragId);if(!ev)return;
+  if(cell.dataset.date)ev.date=cell.dataset.date;if(cell.dataset.time)ev.time=cell.dataset.time;
+  dragId=null;renderCalendar();renderDash();
+}
+
+// ════════ Event Modal ════════
+function populateCatSel(){
+  const s=document.getElementById('ev-cat');
+  s.innerHTML=Object.entries(cats).map(([k,v])=>`<option value="${k}">${v.lbl}</option>`).join('');
+}
+function openEvModal(id,prefDate,prefTime){
+  populateCatSel();editEvId=id||null;
+  const db=document.getElementById('ev-del-btn');
+  if(id){
+    const ev=events.find(x=>x.id===id);if(!ev)return;
+    document.getElementById('ev-modal-title').textContent='일정 편집';
+    document.getElementById('ev-title').value=ev.title;
+    document.getElementById('ev-date').value=ev.date;
+    document.getElementById('ev-time').value=ev.time;
+    document.getElementById('ev-cat').value=ev.cat;
+    db.style.display='';
+  } else {
+    document.getElementById('ev-modal-title').textContent='일정 추가';
+    document.getElementById('ev-title').value='';
+    document.getElementById('ev-date').value=prefDate||TODAY;
+    document.getElementById('ev-time').value=prefTime||'09:00';
+    document.getElementById('ev-cat').value=Object.keys(cats)[0];
+    db.style.display='none';
+  }
+  document.getElementById('ev-modal').classList.add('open');
+  setTimeout(()=>{id?document.getElementById('ev-del-btn').focus():document.getElementById('ev-title').focus();},60);
+}
+function closeEvModal(){document.getElementById('ev-modal').classList.remove('open');}
+function saveEvent(){
+  const title=document.getElementById('ev-title').value.trim();
+  const date=document.getElementById('ev-date').value,time=document.getElementById('ev-time').value;
+  const cat=document.getElementById('ev-cat').value,remind=document.getElementById('ev-remind').value;
+  if(!title||!date||!time)return;
+  if(editEvId){const ev=events.find(x=>x.id===editEvId);if(ev){ev.title=title;ev.date=date;ev.time=time;ev.cat=cat;}}
+  else{
+    events.push({id:uid(),date,time,title,cat});
+    const rm={'10':'10분','30':'30분','60':'1시간','1440':'1일'};
+    notifs.unshift({id:uid(),title:`"${title}" 일정 추가`,desc:`${date} ${time} · ${rm[remind]} 전 알림`,time:'방금 전',type:'calendar',read:false});
+    unread++;updateBadges();
+  }
+  closeEvModal();renderCalendar();renderDash();
+}
+function deleteEvent(){
+  if(!editEvId)return;
+  showCfm('일정을 삭제하시겠습니까?','삭제하면 되돌릴 수 없습니다.',()=>{events=events.filter(x=>x.id!==editEvId);closeEvModal();renderCalendar();renderDash();});
+}
+
+// ════════ Category Settings ════════
+function openCatSettings(){
+  document.getElementById('cat-list').innerHTML=Object.entries(cats).map(([k,v])=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div style="flex:1;font-size:14px;color:var(--text)">${v.lbl}</div>
+      <input type="color" value="${v.color}" data-key="${k}" style="width:36px;height:28px;border:1px solid var(--border2);border-radius:6px;padding:2px;cursor:pointer;background:var(--bg)">
+    </div>`).join('');
+  document.getElementById('cat-modal').classList.add('open');
+}
+function closeCatModal(){document.getElementById('cat-modal').classList.remove('open');}
+function saveCatSettings(){
+  document.querySelectorAll('#cat-list input[type=color]').forEach(inp=>{const k=inp.dataset.key;if(cats[k])cats[k].color=inp.value;});
+  closeCatModal();renderCalendar();renderDash();
+}
+
+// ════════ Todos ════════
+function dueClass(due,done){if(done||!due)return'';if(due<TODAY)return'ov';if(due===TODAY)return'td';return'';}
+function dueLbl(due,done,doneDate){
+  if(done)return doneDate?'완료 '+fmtS(doneDate):'완료';
+  if(!due)return'';
+  if(due<TODAY)return'기한 초과 '+fmtS(due);
+  if(due===TODAY)return'오늘까지';
+  if(due===TOMORROW)return'내일까지';
+  return fmtS(due)+'까지';
+}
+function tdHTML(t){
+  const p=PRI[t.pri]||PRI.normal,dc=dueClass(t.due,t.done),dl=dueLbl(t.due,t.done,t.doneDate);
+  return`<div class="todo-item" onclick="toggleTd(${t.id})">
+    <div class="chk${t.done?' on':''}">${t.done?`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>`:''}</div>
+    <div class="todo-txt${t.done?' done':''}">${esc(t.text)}</div>
+    <span class="pri-b" style="background:${p.bg};color:${p.tc}">${p.lbl}</span>
+    ${dl?`<span class="todo-due ${dc}">${dl}</span>`:''}
+    <div class="todo-acts">
+      <button class="ta-btn" onclick="event.stopPropagation();openTodoModal(${t.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+      <button class="ta-btn" onclick="event.stopPropagation();deleteTd(${t.id})" style="color:var(--red-text)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M9 6V4h6v2"/></svg></button>
+    </div>
+  </div>`;
+}
+function getTabTd(tab){
+  if(tab==='all')return todos.filter(t=>!t.done);
+  if(tab==='overdue')return todos.filter(t=>!t.done&&t.due&&t.due<TODAY);
+  if(tab==='today')return todos.filter(t=>!t.done&&t.due===TODAY);
+  if(tab==='tomorrow')return todos.filter(t=>!t.done&&t.due===TOMORROW);
+  if(tab==='upcoming')return todos.filter(t=>!t.done&&(!t.due||t.due>TOMORROW));
+  return todos.filter(t=>t.done).sort((a,b)=>(b.doneDate||'').localeCompare(a.doneDate||''));
+}
+function updateTC(){
+  const m={all:todos.filter(t=>!t.done),overdue:todos.filter(t=>!t.done&&t.due&&t.due<TODAY),today:todos.filter(t=>!t.done&&t.due===TODAY),tomorrow:todos.filter(t=>!t.done&&t.due===TOMORROW),upcoming:todos.filter(t=>!t.done&&(!t.due||t.due>TOMORROW)),done:todos.filter(t=>t.done)};
+  Object.entries(m).forEach(([k,a])=>{const el=document.getElementById('tc-'+k);if(el)el.textContent=a.length?`(${a.length})`:''});
+}
+function setTodoTab(tab,el){
+  todoTab=tab;document.querySelectorAll('#todo-tabs .tab').forEach(t=>t.classList.remove('active'));if(el)el.classList.add('active');renderTodos();
+}
+function renderTodos(){
+  updateTC();const list=getTabTd(todoTab);const el=document.getElementById('todo-list');if(!el)return;
+  const msgs={all:'미완료 항목이 없습니다 🎉',overdue:'기한이 지난 항목이 없습니다',today:'오늘 할 일이 없습니다 🎉',tomorrow:'내일 예정된 항목이 없습니다',upcoming:'이후 예정된 항목이 없습니다',done:'완료된 항목이 없습니다'};
+  el.innerHTML=list.length?list.map(tdHTML).join(''):`<div class="empty-st"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12l2 2 4-4"/><rect x="3" y="3" width="18" height="18" rx="2"/></svg><div>${msgs[todoTab]||''}</div></div>`;
+}
+function toggleTd(id){const t=todos.find(x=>x.id===id);if(!t)return;t.done=!t.done;t.doneDate=t.done?TODAY:null;renderTodos();renderDash();updateMetrics();}
+function openTodoModal(id){
+  editTdId=id||null;document.getElementById('td-modal-title').textContent=id?'할 일 수정':'할 일 추가';
+  if(id){const t=todos.find(x=>x.id===id);if(t){document.getElementById('td-text').value=t.text;document.getElementById('td-due').value=t.due||'';document.getElementById('td-pri').value=t.pri;}}
+  else{document.getElementById('td-text').value='';document.getElementById('td-due').value=TODAY;document.getElementById('td-pri').value='normal';}
+  document.getElementById('td-modal').classList.add('open');setTimeout(()=>document.getElementById('td-text').focus(),60);
+}
+function closeTdModal(){document.getElementById('td-modal').classList.remove('open');}
+function saveTodo(){
+  const text=document.getElementById('td-text').value.trim();if(!text)return;
+  const due=document.getElementById('td-due').value,pri=document.getElementById('td-pri').value;
+  if(editTdId){const t=todos.find(x=>x.id===editTdId);if(t){t.text=text;t.due=due;t.pri=pri;}}
+  else todos.push({id:uid(),text,done:false,pri,due,doneDate:null});
+  closeTdModal();renderTodos();renderDash();updateMetrics();
+}
+function deleteTd(id){showCfm('할 일을 삭제하시겠습니까?','삭제하면 되돌릴 수 없습니다.',()=>{todos=todos.filter(x=>x.id!==id);renderTodos();renderDash();updateMetrics();});}
+
+// Todo tab keyboard nav
+document.getElementById('todo-tabs').addEventListener('keydown',function(e){
+  if(e.key!=='Tab')return;e.preventDefault();
+  const tabs=Array.from(this.querySelectorAll('.tab'));
+  const idx=tabs.indexOf(document.activeElement);
+  const next=e.shiftKey?(idx-1+tabs.length)%tabs.length:(idx+1)%tabs.length;
+  tabs[next].focus();tabs[next].click();
+});
+document.querySelectorAll('#todo-tabs .tab').forEach(t=>{t.setAttribute('tabindex','0');t.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();t.click();}});});
+
+// ════════ Projects ════════
+function renderProjects(){
+  const el=document.getElementById('proj-list');if(!el)return;
+  el.innerHTML=projects.map(p=>{
+    const pct=pjPct(p),bc=pjBarC(p);
+    return`<div class="proj-card"><div class="proj-card-hdr"><div style="flex:1;min-width:0">
+      <div class="proj-name">${esc(p.name)}</div>
+      ${p.goal?`<div class="proj-goal">🎯 ${esc(p.goal)}</div>`:''}
+    </div><div class="proj-acts">
+      <button class="pa-btn" onclick="openWbs(${p.id})" title="WBS"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></button>
+      <button class="pa-btn" onclick="openProjModal(${p.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+      <button class="pa-btn del" onclick="deletePj(${p.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M9 6V4h6v2"/></svg></button>
+    </div></div>
+    <div class="proj-counts"><span>목표 <b>${p.target}</b>개</span><span style="color:var(--text3)">·</span><span>완료 <b style="color:var(--green)">${p.doneN}</b>개</span><span style="color:var(--text3)">·</span><span>진척률 <b style="color:var(--blue)">${pct}%</b></span></div>
+    <div class="prog-row"><div class="prog"><div class="prog-fill" style="width:${pct}%;background:${bc}"></div></div><div class="proj-pct-lbl">${pct}%</div></div>
+    ${p.items&&p.items.length?`<div class="proj-items">${p.items.map(it=>{const s=SC[it.status]||SC.planned;return`<div class="proj-item-row"><div class="proj-ir-txt">${esc(it.text)}</div><span class="st-badge" style="background:${s.bg};color:${s.tc}">${s.lbl}</span>${it.date?`<span class="proj-ir-date">${fmtF(it.date)}</span>`:''}</div>`;}).join('')}</div>`:''}
+    ${(p.start||p.end)?`<div class="proj-meta">${p.start?`<div class="proj-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>${fmtF(p.start)}</div>`:''}${p.end?`<div class="proj-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>${fmtF(p.end)}</div>`:''}</div>`:''}
+    </div>`;
+  }).join('');updateMetrics();
+}
+function openProjModal(id){
+  editPjId=id||null;tmpItems=[];
+  if(id){const p=projects.find(x=>x.id===id);if(!p)return;
+    document.getElementById('pj-modal-title').textContent='프로젝트 수정';
+    document.getElementById('pj-name').value=p.name;document.getElementById('pj-goal').value=p.goal||'';
+    document.getElementById('pj-target').value=p.target||10;document.getElementById('pj-done-n').value=p.doneN||0;
+    document.getElementById('pj-start').value=p.start||'';document.getElementById('pj-end').value=p.end||'';
+    tmpItems=(p.items||[]).map(x=>({...x}));
+  } else {
+    document.getElementById('pj-modal-title').textContent='새 프로젝트';
+    ['pj-name','pj-goal','pj-ni-text'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('pj-target').value=10;document.getElementById('pj-done-n').value=0;
+    document.getElementById('pj-start').value=TODAY;document.getElementById('pj-end').value='';
+  }
+  calcPct();renderPjItems();document.getElementById('pj-modal').classList.add('open');
+}
+function closePjModal(){document.getElementById('pj-modal').classList.remove('open');}
+function calcPct(){const t=parseInt(document.getElementById('pj-target').value)||0,d=parseInt(document.getElementById('pj-done-n').value)||0;document.getElementById('pj-pct-disp').textContent=(t?Math.min(100,Math.round(d/t*100)):0)+'%';}
+function renderPjItems(){
+  const el=document.getElementById('pj-items');if(!el)return;
+  if(!tmpItems.length){
+    el.innerHTML='<div style="color:var(--text3);font-size:12px;padding:6px 10px;text-align:center;background:var(--surface2);border-radius:var(--rs);margin-bottom:4px">등록된 항목이 없습니다</div>';
+    return;
+  }
+  const SC_COLOR={done:'var(--green-text)',active:'var(--blue-text)',planned:'var(--text2)'};
+  el.innerHTML=tmpItems.map((it,i)=>{
+    const s=SC[it.status]||SC.planned;
+    return`<div style="display:grid;grid-template-columns:1fr 80px 112px 28px;gap:6px;align-items:center;padding:6px 10px;background:var(--surface2);border-radius:var(--rs);margin-bottom:3px">
+      <div style="font-size:13px;color:var(--text);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(it.text)}">${esc(it.text)}</div>
+      <select onchange="tmpItems[${i}].status=this.value;renderPjItems()"
+        style="height:26px;border:1px solid var(--border2);border-radius:5px;background:var(--bg);color:${SC_COLOR[it.status]||'var(--text2)'};font-size:11px;font-family:inherit;padding:0 3px;outline:none;width:100%;text-align:center;font-weight:500">
+        <option value="planned"${it.status==='planned'?' selected':''}>예정</option>
+        <option value="active"${it.status==='active'?' selected':''}>진행중</option>
+        <option value="done"${it.status==='done'?' selected':''}>완료</option>
+      </select>
+      <input type="date" value="${it.date||''}" onchange="tmpItems[${i}].date=this.value"
+        style="height:26px;border:1px solid var(--border2);border-radius:5px;background:var(--bg);color:var(--text);font-size:11px;font-family:inherit;padding:0 5px;outline:none;width:100%">
+      <button onclick="tmpItems.splice(${i},1);renderPjItems()" title="삭제"
+        style="width:24px;height:24px;border:none;background:none;cursor:pointer;color:var(--text3);border-radius:4px;display:flex;align-items:center;justify-content:center;padding:0;flex-shrink:0">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>`;
+  }).join('');
+}
+function addPjItem(){const t=document.getElementById('pj-ni-text').value.trim();if(!t)return;tmpItems.push({text:t,status:document.getElementById('pj-ni-st').value,date:document.getElementById('pj-ni-dt').value});document.getElementById('pj-ni-text').value='';document.getElementById('pj-ni-dt').value='';renderPjItems();}
+function saveProject(){
+  const name=document.getElementById('pj-name').value.trim();if(!name)return;
+  const obj={name,goal:document.getElementById('pj-goal').value.trim(),target:parseInt(document.getElementById('pj-target').value)||0,doneN:parseInt(document.getElementById('pj-done-n').value)||0,items:tmpItems.map(x=>({...x})),start:document.getElementById('pj-start').value,end:document.getElementById('pj-end').value};
+  if(editPjId){const i=projects.findIndex(x=>x.id===editPjId);if(i>=0)projects[i]={...projects[i],...obj};}
+  else projects.push({id:uid(),...obj});
+  closePjModal();renderProjects();renderDash();
+}
+function deletePj(id){const p=projects.find(x=>x.id===id);showCfm(`"${p?p.name:'프로젝트'}"를 삭제하시겠습니까?`,'삭제하면 되돌릴 수 없습니다.',()=>{projects=projects.filter(x=>x.id!==id);renderProjects();renderDash();});}
+
+// ════════ WBS ════════
+function openWbs(id){
+  const p=projects.find(x=>x.id===id);if(!p)return;
+  document.getElementById('wbs-title').textContent=`${p.name} — 진행 현황`;
+  const sd=p.start?new Date(p.start):new Date(2026,0,1);const ed=p.end?new Date(p.end):new Date(2026,11,31);
+  const weeks=[];let cur=new Date(sd);cur.setDate(cur.getDate()-cur.getDay()+1);
+  while(cur<=ed){weeks.push(new Date(cur));cur.setDate(cur.getDate()+7);}
+  let html=`<table class="wbs-tbl"><thead><tr><th style="min-width:200px">진행 내용</th><th>상태</th><th>완료일</th>${weeks.map(w=>`<th class="wbs-wk">${w.getMonth()+1}/${w.getDate()}</th>`).join('')}</tr></thead><tbody>`;
+  (p.items||[]).forEach(it=>{
+    const s=SC[it.status]||SC.planned;const id=it.date?new Date(it.date):null;
+    html+=`<tr><td>${esc(it.text)}</td><td><span class="st-badge" style="background:${s.bg};color:${s.tc}">${s.lbl}</span></td><td style="font-size:11px;color:var(--text2)">${it.date?fmtF(it.date):'-'}</td>
+    ${weeks.map(w=>{const we=new Date(w);we.setDate(w.getDate()+6);const hit=id&&id>=w&&id<=we;return hit?`<td class="wbs-wk"><div class="wbs-bar" style="background:${it.status==='done'?'#16a34a':it.status==='active'?'#2563eb':'#ccc'}"></div></td>`:'<td class="wbs-wk"></td>';}).join('')}</tr>`;
+  });
+  html+='</tbody></table>';document.getElementById('wbs-content').innerHTML=html;document.getElementById('wbs-ov').classList.add('open');
+}
+function closeWbs(){document.getElementById('wbs-ov').classList.remove('open');}
+
+// ════════ Notifications ════════
+function renderNotifs(){
+  const icons={meeting:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>`,alert:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>`,success:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`,calendar:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>`};
+  const ibg={meeting:'var(--blue-bg)',alert:'var(--amber-bg)',success:'var(--green-bg)',calendar:'var(--purple-bg)'};
+  const itc={meeting:'var(--blue-text)',alert:'var(--amber-text)',success:'var(--green-text)',calendar:'var(--purple-text)'};
+  const el=document.getElementById('notif-list');if(!el)return;
+  el.innerHTML=notifs.map(n=>`<div class="notif-item${n.read?' read':''}" onclick="readNotif(${n.id})"><div class="notif-icon" style="background:${ibg[n.type]||'var(--surface2)'};color:${itc[n.type]||'var(--text2)'}">${icons[n.type]||icons.calendar}</div><div class="notif-body"><div class="notif-title2">${esc(n.title)}</div><div class="notif-desc">${esc(n.desc)}</div><div class="notif-time">${n.time}</div></div>${!n.read?'<div class="unread-dot"></div>':''}</div>`).join('');
+}
+function readNotif(id){const n=notifs.find(x=>x.id===id);if(n&&!n.read){n.read=true;unread=Math.max(0,unread-1);updateBadges();renderNotifs();}}
+function clearAll(){notifs.forEach(n=>n.read=true);unread=0;updateBadges();renderNotifs();}
+function updateBadges(){
+  ['sb-badge','dr-badge','bn-badge'].forEach(id=>{const el=document.getElementById(id);if(el){el.textContent=unread;el.style.display=unread>0?'':'none';}});
+  const dot=document.getElementById('notif-dot');if(dot)dot.style.display=unread>0?'':'none';
+  const uc=document.getElementById('unread-count');if(uc)uc.textContent=unread;
+}
+
+// ════════ Confirm ════════
+function showCfm(title,desc,cb){
+  document.getElementById('cfm-title').textContent=title;
+  document.getElementById('cfm-desc').textContent=desc;
+  cfmCb=cb;
+  document.getElementById('cfm-ov').classList.add('open');
+  // 삭제 버튼에 자동 포커스 → 엔터로 바로 실행 가능
+  setTimeout(()=>{ const btn=document.getElementById('cfm-del-btn'); if(btn)btn.focus(); },60);
+}
+function closeCfm(){document.getElementById('cfm-ov').classList.remove('open');cfmCb=null;}
+function doCfm(){if(cfmCb)cfmCb();closeCfm();}
+
+// ════════ Backdrop closes ════════
+['ev-modal','td-modal','pj-modal','cat-modal'].forEach(id=>{document.getElementById(id).addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});});
+document.getElementById('cfm-ov').addEventListener('click',function(e){if(e.target===this)closeCfm();});
+document.getElementById('wbs-ov').addEventListener('click',function(e){if(e.target===this)closeWbs();});
+
+// ════════ Enter key — 모든 모달 ════════
+// 이벤트 모달: 제목 입력 또는 날짜/시간/카테고리 선택 후 엔터 → 저장
+document.getElementById('ev-modal').addEventListener('keydown',function(e){
+  if(e.key!=='Enter')return;
+  const tag=e.target.tagName;
+  // textarea는 줄바꿈이 필요하므로 제외, 버튼은 기본 동작 유지
+  if(tag==='TEXTAREA')return;
+  // 삭제 버튼에 포커스된 상태에서 Enter → deleteEvent (이미 개별 처리됨)
+  if(e.target.id==='ev-del-btn')return;
+  e.preventDefault();saveEvent();
+});
+
+// 할 일 모달: 모든 입력 필드에서 엔터 → 저장
+document.getElementById('td-modal').addEventListener('keydown',function(e){
+  if(e.key!=='Enter')return;
+  if(e.target.tagName==='TEXTAREA')return;
+  e.preventDefault();saveTodo();
+});
+
+// 프로젝트 모달: 이름/목표 입력 후 엔터 → 저장 (새 항목 입력란은 + 버튼 역할)
+document.getElementById('pj-modal').addEventListener('keydown',function(e){
+  if(e.key!=='Enter')return;
+  if(e.target.tagName==='TEXTAREA')return;
+  // 새 항목 입력란(pj-ni-text)에서 엔터 → 항목 추가
+  if(e.target.id==='pj-ni-text'){e.preventDefault();addPjItem();return;}
+  // 그 외 모달 내부 입력에서 엔터 → 저장
+  e.preventDefault();saveProject();
+});
+
+// 확인 다이얼로그: 엔터 → 삭제 실행
+document.getElementById('cfm-ov').addEventListener('keydown',function(e){
+  if(e.key==='Enter'){e.preventDefault();doCfm();}
+  if(e.key==='Escape'){closeCfm();}
+});
+
+// 카테고리 모달: 엔터 → 저장
+document.getElementById('cat-modal').addEventListener('keydown',function(e){
+  if(e.key==='Enter'&&e.target.tagName!=='INPUT')return; // color input은 기본 동작
+  if(e.key==='Escape'){closeCatModal();}
+});
+
+// Escape 키 — 열려있는 모달 닫기
+document.addEventListener('keydown',function(e){
+  if(e.key!=='Escape')return;
+  if(document.getElementById('ev-modal').classList.contains('open'))closeEvModal();
+  else if(document.getElementById('td-modal').classList.contains('open'))closeTdModal();
+  else if(document.getElementById('pj-modal').classList.contains('open'))closePjModal();
+  else if(document.getElementById('cat-modal').classList.contains('open'))closeCatModal();
+  else if(document.getElementById('wbs-ov').classList.contains('open'))closeWbs();
+  else if(document.getElementById('cfm-ov').classList.contains('open'))closeCfm();
+});
+
+// ════════ localStorage 자동 저장/복원 ════════
+const LS_KEY='jkworld_v1';
+
+function saveToStorage(){
+  try{
+    localStorage.setItem(LS_KEY,JSON.stringify({
+      events,notifs,todos,projects,cats,unread,nextId:nid
+    }));
+  }catch(err){console.warn('저장 실패:',err);}
+}
+
+function loadFromStorage(){
+  try{
+    const raw=localStorage.getItem(LS_KEY);
+    if(!raw)return false;
+    const d=JSON.parse(raw);
+    if(d.events)events=d.events;
+    if(d.notifs)notifs=d.notifs;
+    if(d.todos)todos=d.todos;
+    if(d.projects)projects=d.projects;
+    if(d.cats)cats=Object.assign({},cats,d.cats); // 기본 카테고리 구조 유지
+    if(typeof d.unread==='number')unread=d.unread;
+    if(typeof d.nextId==='number')nid=d.nextId;
+    return true;
+  }catch(err){console.warn('불러오기 실패:',err);return false;}
+}
+
+// 데이터 변경 시 자동 저장을 위해 원본 함수를 래핑
+const _origSaveEvent=saveEvent;
+saveEvent=function(){_origSaveEvent();saveToStorage();};
+
+const _origSaveTodo=saveTodo;
+saveTodo=function(){_origSaveTodo();saveToStorage();};
+
+const _origSaveProject=saveProject;
+saveProject=function(){_origSaveProject();saveToStorage();};
+
+const _origToggleTd=toggleTd;
+toggleTd=function(id){_origToggleTd(id);saveToStorage();};
+
+const _origDeleteEvent=deleteEvent;
+deleteEvent=function(){_origDeleteEvent();saveToStorage();};
+
+const _origDeleteTd=deleteTd;
+deleteTd=function(id){_origDeleteTd(id);saveToStorage();};
+
+const _origDeletePj=deletePj;
+deletePj=function(id){_origDeletePj(id);saveToStorage();};
+
+const _origReadNotif=readNotif;
+readNotif=function(id){_origReadNotif(id);saveToStorage();};
+
+const _origClearAll=clearAll;
+clearAll=function(){_origClearAll();saveToStorage();};
+
+const _origSaveCatSettings=saveCatSettings;
+saveCatSettings=function(){_origSaveCatSettings();saveToStorage();};
+
+// ════════ Init ════════
+loadFromStorage(); // 저장된 데이터 복원
+renderDash();
+renderCalendar();
+updateBadges();
+updateTC();
+fetchWeather();
+</script>
+</body>
+</html>
