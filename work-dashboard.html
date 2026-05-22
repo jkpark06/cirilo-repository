@@ -93,13 +93,17 @@ html,body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;b
 /* ── Main ── */
 .main{flex:1;min-width:0;overflow-x:hidden;z-index:1;position:relative}
 .topbar{
-  background:rgba(255,255,255,0.9);
+  background:var(--dash-hero-bg);
   backdrop-filter:blur(8px);
-  border-bottom:1px solid var(--border);
+  border-bottom:1px solid rgba(99,102,241,.2);
   padding:0 24px;height:56px;
   display:flex;align-items:center;justify-content:space-between;
   position:sticky;top:0;z-index:20;
 }
+.page-title{font-size:15px;font-weight:600;color:#e0e7ff}
+.menu-btn{color:#a5b4fc}
+.icon-btn{border-color:rgba(99,102,241,.3);color:#a5b4fc}
+.icon-btn:hover{background:rgba(255,255,255,.08)}
 @media(prefers-color-scheme:dark){.topbar{background:rgba(30,30,28,0.92)}}
 .topbar-left{display:flex;align-items:center;gap:12px}
 .menu-btn{display:none;width:36px;height:36px;border:none;background:none;color:var(--text);cursor:pointer;border-radius:var(--rs);align-items:center;justify-content:center;padding:0}
@@ -444,11 +448,15 @@ html,body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;b
 .cfm-footer{display:flex;gap:8px;justify-content:flex-end}
 
 /* ── Bottom nav / Drawer ── */
-.bnav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);padding:8px 0 max(8px,env(safe-area-inset-bottom));z-index:100;justify-content:space-around}
-.bni{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 8px;cursor:pointer;color:var(--text3);font-size:10px;font-weight:500;border-radius:var(--rs);transition:color .15s;position:relative;user-select:none}
-.bni.active{color:var(--blue)}
+.bnav{display:none;position:fixed;bottom:0;left:0;right:0;
+  background:var(--dash-hero-bg);
+  border-top:1px solid rgba(99,102,241,.2);
+  padding:8px 0 max(8px,env(safe-area-inset-bottom));
+  z-index:100;justify-content:space-around}
+.bni{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 8px;cursor:pointer;color:rgba(165,180,252,.55);font-size:10px;font-weight:500;border-radius:var(--rs);transition:color .15s;position:relative;user-select:none}
+.bni.active{color:#a5b4fc}
 .bni svg{width:22px;height:22px}
-.bni-badge{position:absolute;top:2px;right:6px;width:16px;height:16px;background:var(--red);color:#fff;font-size:9px;font-weight:600;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid var(--surface)}
+.bni-badge{position:absolute;top:2px;right:6px;width:16px;height:16px;background:#ef4444;color:#fff;font-size:9px;font-weight:600;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #1e1b4b}
 .drov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:150}
 .drov.open{display:block}
 .drawer{position:fixed;top:0;left:0;bottom:0;width:240px;background:var(--surface);z-index:160;transform:translateX(-100%);transition:transform .28s cubic-bezier(.4,0,.2,1);overflow-y:auto}
@@ -463,6 +471,72 @@ html,body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;b
   .grid-3{grid-template-columns:1fr}.add-btn span{display:none}.add-btn{padding:0 10px}
   .card{padding:14px 16px}.tab{font-size:11px;padding:6px 2px}.todo-acts{opacity:1}
   .fr{grid-template-columns:1fr}.cal-grid{font-size:11px}.cal-ev{font-size:10px;padding:2px 3px}
+
+  /* ── 모바일 Hero 시계 레이아웃 ── */
+  .dash-hero{
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+    padding:18px 16px 20px;
+    gap:14px;
+  }
+  .dash-hero-left{width:100%;text-align:center}
+  .dash-greeting{font-size:20px}
+  .dash-sub{font-size:12px}
+
+  /* 시계 영역: 두 시계를 가로로 나란히, 중앙 정렬, 간격 넓게 */
+  .dash-clocks{
+    display:flex;
+    flex-direction:row;
+    justify-content:center;
+    align-items:flex-start;
+    gap:36px;         /* 두 시계 사이 간격 넓게 */
+    width:100%;
+    flex-wrap:wrap;
+  }
+  .clock-divider{display:none}  /* 구분선 숨김 */
+
+  /* 각 시계 아이템: 세로 스택 + 중앙 정렬 */
+  .dash-clock-item{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:6px;
+  }
+  /* 국기 이미지 */
+  .dash-clock-item .flag-icon,
+  .dash-clock-item .flag-svg{
+    margin-bottom:2px;
+  }
+  /* 시간/날짜 텍스트: 국기 아래 중앙 */
+  .clock-info{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+  }
+  .clock-time{font-size:20px;text-align:center}
+  .clock-date{font-size:10px;text-align:center;white-space:nowrap}
+
+  /* 날씨 칩: 시계 아래 가운데 정렬 */
+  .weather-hero-chip{font-size:12px;padding:4px 10px}
+  #dash-weather-hero,
+  #dash-weather-hero-sa{display:inline-flex!important}
+
+  /* ── 모바일 드로어: PC 사이드바와 동일한 다크 테마 ── */
+  .drawer{
+    background:var(--dash-hero-bg)!important;
+    border-right:1px solid rgba(99,102,241,.2)!important;
+  }
+  /* 드로어 내부 nav 아이템도 다크 스타일 */
+  .drawer .nav-item{color:rgba(165,180,252,.7)!important}
+  .drawer .nav-item:hover{background:rgba(255,255,255,.08)!important;color:#fff!important}
+  .drawer .nav-item.active{background:rgba(99,102,241,.35)!important;color:#a5b4fc!important}
+  .drawer .logo-text{color:#fff!important}
+  .drawer .logo-globe{background:rgba(255,255,255,.15)!important}
+  .drawer .uname{color:#e0e7ff!important}
+  .drawer .urole{color:rgba(165,180,252,.6)!important}
+  .drawer .nav-badge{background:#ef4444!important}
 }
 @media(max-width:480px){.metrics-grid{grid-template-columns:1fr 1fr}.metric-value{font-size:22px}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
@@ -521,6 +595,7 @@ html,body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;b
       <span class="page-title" id="page-title">대시보드</span>
     </div>
     <div class="tb-right">
+      <button class="icon-btn" id="notif-perm-btn" onclick="requestNotifPermission()" title="알림 켜기" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/><line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" stroke-width="2"/></svg></button>
       <button class="icon-btn" onclick="switchView('notifications',null)" aria-label="알림"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="bdot" id="notif-dot"></span></button>
       <button class="add-btn" onclick="openEvModal(null)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg><span>일정 추가</span></button>
     </div>
@@ -923,8 +998,8 @@ const SLOT_H=28;   // 30분 슬롯 높이(px)
 const WMO={0:'☀️',1:'🌤',2:'⛅',3:'☁️',45:'🌫',51:'🌦',53:'🌦',61:'🌧',63:'🌧',80:'🌦',81:'🌧',95:'⛈'};
 const SC={done:{bg:'var(--green-bg)',tc:'var(--green-text)',lbl:'완료'},active:{bg:'var(--blue-bg)',tc:'var(--blue-text)',lbl:'진행중'},planned:{bg:'var(--surface2)',tc:'var(--text2)',lbl:'예정'}};
 const PRI={urgent:{bg:'var(--red-bg)',tc:'var(--red-text)',lbl:'긴급'},high:{bg:'var(--amber-bg)',tc:'var(--amber-text)',lbl:'높음'},normal:{bg:'var(--surface2)',tc:'var(--text2)',lbl:'보통'},low:{bg:'var(--teal-bg)',tc:'var(--teal-text)',lbl:'낮음'}};
-const DF_MODES=['overdue','today','tomorrow','upcoming','all'];
-const DF_LABELS=['미완료','오늘','내일','앞으로','전체'];
+const DF_MODES=['today','tomorrow','thisweek','nextweek'];
+const DF_LABELS=['오늘','내일','이번 주','다음 주'];
 
 // ════════ Category Config ════════
 let cats={
@@ -954,7 +1029,7 @@ const KBO={
 
 // ════════ State ════════
 let calMode='week', weekOff=0, monthOff=0;
-let unread=3, todoTab='today', dfMode=1;
+let unread=3, todoTab='today', dfMode=0;
 let editEvId=null, editTdId=null, editPjId=null, cfmCb=null;
 let tmpItems=[];
 let nid=200; function uid(){return ++nid;}
@@ -1196,26 +1271,57 @@ function openDrawer(){document.getElementById('drawer').classList.add('open');do
 function closeDrawer(){document.getElementById('drawer').classList.remove('open');document.getElementById('drov').classList.remove('open')}
 
 // ════════ Dashboard ════════
-function shiftDF(d){dfMode=(dfMode+d+5)%5;renderDashTL();}
+function shiftDF(d){dfMode=(dfMode+d+4)%4;renderDashTL();}
+
+function getWeekRange(offsetWeeks){
+  // offsetWeeks=0: 이번 주, 1: 다음 주
+  const base=new Date(TODAY);
+  const dow=base.getDay(); // 0=일
+  const mon=new Date(base); mon.setDate(base.getDate()-dow+1+offsetWeeks*7);
+  const sun=new Date(mon);  sun.setDate(mon.getDate()+6);
+  return {start:ds(mon), end:ds(sun)};
+}
+
 function renderDashTL(){
   const lbl=DF_LABELS[dfMode];
-  document.getElementById('df-label').textContent=lbl;
+  const labelEl=document.getElementById('df-label');
+  if(labelEl)labelEl.textContent=lbl;
   const m=DF_MODES[dfMode];
-  let evs=m==='overdue'?events.filter(e=>e.date<TODAY)
-    :m==='today'?events.filter(e=>e.date===TODAY)
-    :m==='tomorrow'?events.filter(e=>e.date===TOMORROW)
-    :m==='upcoming'?events.filter(e=>e.date>TOMORROW)
-    :[...events];
+  let evs=[];
+  if(m==='today'){
+    evs=events.filter(e=>e.date===TODAY);
+  } else if(m==='tomorrow'){
+    evs=events.filter(e=>e.date===TOMORROW);
+  } else if(m==='thisweek'){
+    const {start,end}=getWeekRange(0);
+    evs=events.filter(e=>e.date>=start&&e.date<=end);
+  } else if(m==='nextweek'){
+    const {start,end}=getWeekRange(1);
+    evs=events.filter(e=>e.date>=start&&e.date<=end);
+  }
   evs.sort((a,b)=>a.date===b.date?a.time.localeCompare(b.time):a.date.localeCompare(b.date));
   const el=document.getElementById('dash-timeline');if(!el)return;
-  if(!evs.length){el.innerHTML='<div style="color:var(--text3);font-size:13px;padding:12px 0">일정이 없습니다</div>';return;}
+  if(!evs.length){
+    el.innerHTML=`<div style="color:var(--text3);font-size:13px;padding:12px 0">${lbl} 일정이 없습니다</div>`;
+    return;
+  }
+  const showDate=(m==='thisweek'||m==='nextweek');
   el.innerHTML=evs.map(e=>{
-    const past=e.date<TODAY||(e.date===TODAY&&e.time<'14:00');
+    const past=e.date<TODAY||(e.date===TODAY&&e.time<new Date().toTimeString().slice(0,5));
     const col=catC(e.cat);
-    return`<div class="t-item"><div class="t-time">${m!=='today'?`<div>${fmtS(e.date)}</div>`:''}<div>${e.time}</div></div>
-    <div class="t-dot" style="background:${past?'#16a34a':col}"></div>
-    <div style="flex:1"><div class="t-title">${esc(e.title)}${past?`<span class="badge" style="background:var(--green-bg);color:var(--green-text)">완료</span>`:''}</div>
-    <div class="t-meta">${catL(e.cat)}</div></div></div>`;
+    const redDay=isRedDay(e.date);
+    const dateStyle=redDay?'color:#ef4444;font-weight:600':'';
+    return`<div class="t-item">
+      <div class="t-time">
+        ${showDate?`<div style="font-size:10px;${dateStyle}">${fmtS(e.date)}(${DAYS[new Date(e.date).getDay()]})</div>`:''}
+        <div>${e.time}</div>
+      </div>
+      <div class="t-dot" style="background:${past?'#10b981':col}"></div>
+      <div style="flex:1">
+        <div class="t-title">${esc(e.title)}${past?`<span class="badge" style="background:var(--green-bg);color:var(--green-text)">완료</span>`:''}</div>
+        <div class="t-meta">${catL(e.cat)}</div>
+      </div>
+    </div>`;
   }).join('');
 }
 function renderDash(){
@@ -1411,20 +1517,20 @@ function renderHeroes(){
 // ════════ 한국 공휴일 (다년도, 동적 생성) ════════
 function buildKrHolidays(){
   const h={};
-  // 고정 공휴일 (연도별)
+
+  // ── 고정 공휴일 ────────────────────────────────────────────
+  const fixed=[
+    ['01-01','신정'],['03-01','삼일절'],['05-05','어린이날'],
+    ['06-06','현충일'],['08-15','광복절'],
+    ['10-03','개천절'],['10-09','한글날'],['12-25','크리스마스'],
+  ];
   for(let yr=2024;yr<=2030;yr++){
-    h[`${yr}-01-01`]='신정';
-    h[`${yr}-03-01`]='삼일절';
-    h[`${yr}-05-05`]='어린이날';
-    h[`${yr}-06-06`]='현충일';
-    h[`${yr}-08-15`]='광복절';
-    h[`${yr}-10-03`]='개천절';
-    h[`${yr}-10-09`]='한글날';
-    h[`${yr}-12-25`]='크리스마스';
+    fixed.forEach(([md,name])=>{ h[`${yr}-${md}`]=name; });
   }
-  // 음력 기반 공휴일 (연도별 실제 날짜 — 2024~2030 실제값)
-  const lunar={
-    // 설날 (설 당일 + 전후 하루씩)
+
+  // ── 음력 기반 공휴일 (2024~2030 실제 날짜) ────────────────
+  // 설날 연휴 (전날·당일·다음날)
+  const seollal={
     '2024':['2024-02-09','2024-02-10','2024-02-11'],
     '2025':['2025-01-28','2025-01-29','2025-01-30'],
     '2026':['2026-02-16','2026-02-17','2026-02-18'],
@@ -1433,6 +1539,11 @@ function buildKrHolidays(){
     '2029':['2029-02-12','2029-02-13','2029-02-14'],
     '2030':['2030-02-02','2030-02-03','2030-02-04'],
   };
+  Object.entries(seollal).forEach(([,[b,m,a]])=>{
+    h[b]='설날 연휴'; h[m]='설날'; h[a]='설날 연휴';
+  });
+
+  // 추석 연휴
   const chuseok={
     '2024':['2024-09-16','2024-09-17','2024-09-18'],
     '2025':['2025-10-05','2025-10-06','2025-10-07'],
@@ -1442,18 +1553,67 @@ function buildKrHolidays(){
     '2029':['2029-09-22','2029-09-23','2029-09-24'],
     '2030':['2030-10-11','2030-10-12','2030-10-13'],
   };
+  Object.entries(chuseok).forEach(([,[b,m,a]])=>{
+    h[b]='추석 연휴'; h[m]='추석'; h[a]='추석 연휴';
+  });
+
+  // 부처님오신날
   const buddha={
     '2024':'2024-05-15','2025':'2025-05-05',
     '2026':'2026-05-24','2027':'2027-05-13',
     '2028':'2028-05-02','2029':'2029-05-20','2030':'2030-05-09',
   };
-  Object.entries(lunar).forEach(([yr,[b,m,a]])=>{
-    h[b]='설날 연휴';h[m]='설날';h[a]='설날 연휴';
-  });
-  Object.entries(chuseok).forEach(([yr,[b,m,a]])=>{
-    h[b]='추석 연휴';h[m]='추석';h[a]='추석 연휴';
-  });
-  Object.entries(buddha).forEach(([yr,d])=>{h[d]='부처님오신날';});
+  Object.entries(buddha).forEach(([,d])=>{ h[d]='부처님오신날'; });
+
+  // ── 대체 휴일 (실제 지정일 반영, 2024~2030) ─────────────────
+  // 규칙: 공휴일이 일요일 → 다음 월요일 대체, 토요일 → 앞 금요일 대체(일부)
+  // 실제 정부 공고 기준으로 직접 입력
+  const substitute=[
+    // 2024
+    '2024-02-12', // 설날 연휴(2/10 일요일) → 대체
+    // 2025
+    '2025-03-03', // 삼일절(3/1 토요일) → 3/3 월요일
+    '2025-05-06', // 어린이날(5/5 월요일이나 부처님오신날 겹침) → 5/6
+    // 2026
+    '2026-08-17', // 광복절(8/15 토요일) → 8/17 월요일
+    // 2027
+    '2027-03-01', // (일요일 아님, skip)
+    '2027-05-06', // 어린이날(5/5 수요일) - 정상
+    '2027-10-04', // 개천절(10/3 일요일) → 10/4 월요일
+    // 2028
+    '2028-01-24', // 설날연휴(1/25 금) 대체 - 이미 포함
+    '2028-03-02', // 삼일절(3/1 수요일) - 정상
+    '2028-10-09', // 한글날(10/9 월요일) - 정상
+    // 2029
+    '2029-01-01', // 신정 정상
+    '2029-06-07', // 현충일(6/6 수요일) - 정상
+    // 2030
+    '2030-03-04', // 삼일절(3/1 금요일) - 정상
+    '2030-10-14', // 한글날(10/9 수요일) - 정상
+  ];
+
+  // 대체 휴일을 실제 관보 기준으로 정확하게 입력
+  const subst_actual = {
+    '2024-02-12': '설날 대체 휴일',
+    '2024-09-23': '추석 대체 휴일',   // 추석(9/17 화) 연휴 앞 토요일
+    '2025-03-03': '삼일절 대체 휴일',
+    '2025-05-06': '어린이날 대체 휴일',
+    '2026-02-20': '설날 대체 휴일',    // 설날 연휴(2/16~18) 중 일요일 포함
+    '2026-10-05': '개천절 대체 휴일',  // 개천절(10/3 토) → 10/5 월
+    '2027-02-09': '설날 대체 휴일',    // 설날 연휴 중 일 포함
+    '2027-10-04': '개천절 대체 휴일',  // 개천절(10/3 일) → 10/4 월
+    '2027-10-11': '한글날 대체 휴일',  // 한글날(10/9 토) → 10/11 월
+    '2028-01-27': '설날 대체 휴일',    // 설날 연휴 중 일 포함
+    '2028-10-10': '한글날 대체 휴일',  // 한글날(10/9 월) - 정상이나 추석연휴 겹침
+    '2029-09-23': '추석 대체 휴일',
+    '2030-02-05': '설날 대체 휴일',
+  };
+  Object.entries(subst_actual).forEach(([d,name])=>{ h[d]=name; });
+
+  // ── 임시 공휴일 / 선거일 예시 ────────────────────────────────
+  // 실제 선거일은 별도 공포 필요
+  // h['2026-06-03'] = '지방선거일';  // 필요시 주석 해제
+
   return h;
 }
 const KR_HOLIDAYS=buildKrHolidays();
@@ -2385,6 +2545,148 @@ clearAll=function(){_origClearAll();saveToStorage();};
 const _origSaveCatSettings=saveCatSettings;
 saveCatSettings=function(){_origSaveCatSettings();saveToStorage();};
 
+// ════════ Web Push 알림 엔진 ════════════════════════════════
+let swRegistration = null;
+
+// ── 서비스 워커 등록 ─────────────────────────────────────────
+async function registerSW(){
+  if(!('serviceWorker' in navigator)){
+    console.warn('서비스 워커 미지원 브라우저');
+    return null;
+  }
+  try{
+    const reg = await navigator.serviceWorker.register('./sw.js', {scope:'./'});
+    swRegistration = reg;
+    console.log('[SW] 등록 완료:', reg.scope);
+    return reg;
+  }catch(err){
+    console.warn('[SW] 등록 실패:', err);
+    return null;
+  }
+}
+
+// ── 알림 권한 요청 ───────────────────────────────────────────
+async function requestNotifPermission(){
+  if(!('Notification' in window)){
+    showSyncStatus('이 브라우저는 알림을 지원하지 않습니다', '#ef4444');
+    return;
+  }
+  const permission = await Notification.requestPermission();
+  if(permission === 'granted'){
+    showSyncStatus('✓ 알림이 활성화되었습니다!', '#10b981');
+    document.getElementById('notif-perm-btn').style.display = 'none';
+    // 테스트 알림 발송
+    setTimeout(()=>sendNotification('Odyssey HQ 알림 활성화', '일정 알림이 설정되었습니다 ✅', 'test'), 500);
+  } else {
+    showSyncStatus('알림 권한이 거부되었습니다', '#ef4444');
+  }
+  checkNotifPermUI();
+}
+
+// ── 권한 상태에 따라 UI 업데이트 ────────────────────────────
+function checkNotifPermUI(){
+  const btn = document.getElementById('notif-perm-btn');
+  if(!btn) return;
+  if(!('Notification' in window)){
+    btn.style.display = 'none';
+    return;
+  }
+  if(Notification.permission === 'granted'){
+    btn.style.display = 'none';  // 이미 허용 → 버튼 숨김
+  } else if(Notification.permission === 'denied'){
+    btn.style.display = 'none';  // 거부됨 → 버튼 숨김 (설정에서만 변경 가능)
+  } else {
+    btn.style.display = 'flex';  // default → 버튼 표시
+    btn.title = '알림 권한 허용하기';
+  }
+}
+
+// ── 실제 알림 발송 ───────────────────────────────────────────
+async function sendNotification(title, body, tag='odyssey'){
+  if(!('Notification' in window)) return;
+  if(Notification.permission !== 'granted') return;
+
+  const options = {
+    body,
+    tag,
+    icon:    './icon-192.png',  // GitHub에 업로드한 아이콘 (없으면 기본값)
+    badge:   './icon-192.png',
+    vibrate: [200, 100, 200],
+    requireInteraction: false,
+    data: { url: './' },
+    actions:[
+      {action:'open',    title:'열기'},
+      {action:'dismiss', title:'닫기'},
+    ]
+  };
+
+  // 서비스 워커 통해 알림 (백그라운드 지원)
+  if(swRegistration && swRegistration.active){
+    swRegistration.active.postMessage({
+      type: 'SHOW_NOTIFICATION',
+      payload: { title, body, tag, data:{url:'./'} }
+    });
+  } else {
+    // 폴백: 직접 Notification API
+    try{ new Notification(title, options); }catch(e){}
+  }
+}
+
+// ── 일정 알림 스케줄러 (1분마다 체크) ───────────────────────
+const _firedNotifs = new Set(); // 중복 방지
+
+function checkEventAlarms(){
+  if(Notification.permission !== 'granted') return;
+
+  const now     = new Date();
+  const nowMs   = now.getTime();
+  const todayStr = ds(now);
+
+  events.forEach(ev=>{
+    if(!ev.date || !ev.time) return;
+    // 이벤트 시작 시각 (밀리초)
+    const [hh,mm] = ev.time.split(':').map(Number);
+    const evDate  = new Date(`${ev.date}T${ev.time}:00`);
+    const evMs    = evDate.getTime();
+
+    // 알림 시점: remind 분 전 (기본 10분)
+    const remindMins = parseInt(ev.remind || 10);
+    const alarmMs    = evMs - remindMins * 60 * 1000;
+    const alarmKey   = `${ev.id}-${remindMins}`;
+
+    // 알람 시각이 지금으로부터 ±30초 이내이고 아직 발송 안 했으면
+    const diff = nowMs - alarmMs;
+    if(diff >= -30000 && diff <= 30000 && !_firedNotifs.has(alarmKey)){
+      _firedNotifs.add(alarmKey);
+      const catName  = catL(ev.cat) || '';
+      const timeStr  = ev.time;
+      const dateStr2 = ev.date===todayStr ? '오늘' : fmtS(ev.date);
+      sendNotification(
+        `📅 ${ev.title}`,
+        `${dateStr2} ${timeStr} | ${catName} | ${remindMins}분 후 시작`,
+        `ev-${ev.id}`
+      );
+      // 앱 내 알림 목록에도 추가
+      notifs.unshift({
+        id: uid(),
+        title: `${ev.title} — ${remindMins}분 후 시작`,
+        desc:  `${dateStr2} ${timeStr} · ${catName}`,
+        time:  '방금',
+        type:  'meeting',
+        read:  false
+      });
+      unread++;
+      updateBadges();
+      saveToStorage();
+    }
+  });
+}
+
+// 1분마다 알람 체크
+setInterval(checkEventAlarms, 60 * 1000);
+// 앱 로드 직후 한 번 실행
+setTimeout(checkEventAlarms, 3000);
+
 // ════════ Init ════════
 loadFromStorage(); // Firebase에서 불러오기 + 실시간 감지 시작
 renderDash();
@@ -2392,6 +2694,8 @@ renderCalendar();
 updateBadges();
 updateTC();
 fetchWeather();
+// 서비스 워커 등록 + 알림 권한 UI 초기화
+registerSW().then(()=>{ checkNotifPermUI(); });
 </script>
 </body>
 </html>
