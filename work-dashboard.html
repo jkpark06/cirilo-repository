@@ -1750,51 +1750,81 @@ function saveToStorage(){
 // ── Firebase에서 불러오기 (앱 시작 시 1회) ───────────────────
 function loadFromStorage(){
   // 1) 우선 localStorage로 빠르게 화면 렌더
+  let localData = null;
   try{
     const raw = localStorage.getItem('jkworld_v1');
     if(raw){
-      const d = JSON.parse(raw);
-      applyData(d);
-    }
-  }catch(e){}
-
-  // 2) Firebase에서 최신 데이터 불러와 덮어씌우기
-  showSyncStatus('⟳ 동기화 중...', '#2563eb');
-  db.ref(DB_PATH).once('value')
-    .then(snap=>{
-      const d = snap.val();
-      if(d){
-        applyData(d);
-        // localStorage도 최신으로 갱신
-        localStorage.setItem('jkworld_v1', JSON.stringify(d));
-        showSyncStatus('✓ 동기화 완료', '#16a34a');
-      } else {
-        showSyncStatus('✓ 새 데이터베이스', '#16a34a');
-      }
-      // 화면 갱신
+      localData = JSON.parse(raw);
+      applyData(localData);
       renderDash();
       renderCalendar();
       updateBadges();
       updateTC();
+    }
+  }catch(e){}
+
+  // 2) Firebase에서 최신 데이터 확인
+  showSyncStatus('⟳ 동기화 중...', '#2563eb');
+  db.ref(DB_PATH).once('value')
+    .then(snap=>{
+      const firebaseData = snap.val();
+
+      if(!firebaseData){
+        // Firebase가 비어있음 → localStorage 데이터를 Firebase에 업로드
+        if(localData){
+          showSyncStatus('⬆ 기존 데이터 업로드 중...', '#d97706');
+          const payload = Object.assign({}, localData, { updatedAt: Date.now() });
+          return db.ref(DB_PATH).set(payload).then(()=>{
+            _lastSavedAt = payload.updatedAt;
+            showSyncStatus('✓ 기존 데이터 업로드 완료!', '#16a34a');
+          });
+        } else {
+          showSyncStatus('✓ 새 데이터베이스', '#16a34a');
+        }
+      } else {
+        // Firebase에 데이터가 있음
+        const fbTime = firebaseData.updatedAt || 0;
+        const lcTime = localData ? (localData.updatedAt || 0) : 0;
+
+        if(lcTime > fbTime){
+          // localStorage가 더 최신 → Firebase로 업로드
+          showSyncStatus('⬆ 로컬 최신 데이터 업로드 중...', '#d97706');
+          const payload = Object.assign({}, localData, { updatedAt: Date.now() });
+          return db.ref(DB_PATH).set(payload).then(()=>{
+            _lastSavedAt = payload.updatedAt;
+            showSyncStatus('✓ 업로드 완료!', '#16a34a');
+          });
+        } else {
+          // Firebase가 최신 (다른 기기에서 수정) → Firebase 데이터 적용
+          applyData(firebaseData);
+          localStorage.setItem('jkworld_v1', JSON.stringify(firebaseData));
+          renderDash();
+          renderCalendar();
+          updateBadges();
+          updateTC();
+          showSyncStatus('✓ 동기화 완료', '#16a34a');
+        }
+      }
     })
     .catch(err=>{
       console.warn('Firebase 불러오기 실패 (오프라인 모드):', err);
       showSyncStatus('오프라인 모드', '#d97706');
+    })
+    .then(()=>{
+      // 3) 실시간 변경 감지 — 다른 기기에서 수정 시 자동 반영
+      db.ref(DB_PATH).on('value', snap=>{
+        const d = snap.val();
+        if(!d) return;
+        // 현재 기기가 방금 저장한 경우 무시
+        if(_lastSavedAt && d.updatedAt && d.updatedAt <= _lastSavedAt + 1000) return;
+        applyData(d);
+        renderDash();
+        renderCalendar();
+        updateBadges();
+        updateTC();
+        showSyncStatus('↻ 다른 기기에서 업데이트됨', '#7c3aed');
+      });
     });
-
-  // 3) 실시간 변경 감지 — 다른 기기에서 수정 시 자동 반영
-  db.ref(DB_PATH).on('value', snap=>{
-    const d = snap.val();
-    if(!d) return;
-    // 현재 기기가 방금 저장한 경우 무시 (updatedAt 비교)
-    if(_lastSavedAt && d.updatedAt && d.updatedAt <= _lastSavedAt + 1000) return;
-    applyData(d);
-    renderDash();
-    renderCalendar();
-    updateBadges();
-    updateTC();
-    showSyncStatus('↻ 다른 기기에서 업데이트됨', '#7c3aed');
-  });
 
   return true;
 }
