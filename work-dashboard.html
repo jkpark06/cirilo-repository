@@ -1695,34 +1695,147 @@ document.addEventListener('keydown',function(e){
   else if(document.getElementById('cfm-ov').classList.contains('open'))closeCfm();
 });
 
-// ════════ localStorage 자동 저장/복원 ════════
-const LS_KEY='jkworld_v1';
+// ════════ Firebase Realtime DB 연동 ════════
+// Firebase SDK (CDN, compat 버전 — import 없이 바로 사용)
+</script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script>
 
+const firebaseConfig = {
+  apiKey: "AIzaSyC2z3_yARQpPzO9WID6cw0wderW--_qGQY",
+  authDomain: "jk-dashboard-f8a2f.firebaseapp.com",
+  databaseURL: "https://jk-dashboard-f8a2f-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "jk-dashboard-f8a2f",
+  storageBucket: "jk-dashboard-f8a2f.firebasestorage.app",
+  messagingSenderId: "1048023037334",
+  appId: "1:1048023037334:web:e21585719a5f71e45a99b7"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const DB_PATH = 'jkworld';
+
+// 저장 중복 방지용 타이머
+let _saveTimer = null;
+
+// ── Firebase에 저장 (debounce 500ms) ──────────────────────────
 function saveToStorage(){
+  // localStorage도 병행 저장 (오프라인 폴백)
   try{
-    localStorage.setItem(LS_KEY,JSON.stringify({
+    localStorage.setItem('jkworld_v1', JSON.stringify({
       events,notifs,todos,projects,cats,unread,nextId:nid
     }));
-  }catch(err){console.warn('저장 실패:',err);}
+  }catch(e){}
+
+  // Firebase 저장 (연속 호출 시 500ms 후 한 번만 실행)
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(()=>{
+    const payload = {
+      events,
+      notifs,
+      todos,
+      projects,
+      cats,
+      unread,
+      nextId: nid,
+      updatedAt: Date.now()
+    };
+    db.ref(DB_PATH).set(payload)
+      .then(()=>{ showSyncStatus('✓ 저장됨', '#16a34a'); })
+      .catch(err=>{ console.warn('Firebase 저장 실패:', err); showSyncStatus('저장 실패 (오프라인?)', '#dc2626'); });
+  }, 500);
 }
 
+// ── Firebase에서 불러오기 (앱 시작 시 1회) ───────────────────
 function loadFromStorage(){
+  // 1) 우선 localStorage로 빠르게 화면 렌더
   try{
-    const raw=localStorage.getItem(LS_KEY);
-    if(!raw)return false;
-    const d=JSON.parse(raw);
-    if(d.events)events=d.events;
-    if(d.notifs)notifs=d.notifs;
-    if(d.todos)todos=d.todos;
-    if(d.projects)projects=d.projects;
-    if(d.cats)cats=Object.assign({},cats,d.cats); // 기본 카테고리 구조 유지
-    if(typeof d.unread==='number')unread=d.unread;
-    if(typeof d.nextId==='number')nid=d.nextId;
-    return true;
-  }catch(err){console.warn('불러오기 실패:',err);return false;}
+    const raw = localStorage.getItem('jkworld_v1');
+    if(raw){
+      const d = JSON.parse(raw);
+      applyData(d);
+    }
+  }catch(e){}
+
+  // 2) Firebase에서 최신 데이터 불러와 덮어씌우기
+  showSyncStatus('⟳ 동기화 중...', '#2563eb');
+  db.ref(DB_PATH).once('value')
+    .then(snap=>{
+      const d = snap.val();
+      if(d){
+        applyData(d);
+        // localStorage도 최신으로 갱신
+        localStorage.setItem('jkworld_v1', JSON.stringify(d));
+        showSyncStatus('✓ 동기화 완료', '#16a34a');
+      } else {
+        showSyncStatus('✓ 새 데이터베이스', '#16a34a');
+      }
+      // 화면 갱신
+      renderDash();
+      renderCalendar();
+      updateBadges();
+      updateTC();
+    })
+    .catch(err=>{
+      console.warn('Firebase 불러오기 실패 (오프라인 모드):', err);
+      showSyncStatus('오프라인 모드', '#d97706');
+    });
+
+  // 3) 실시간 변경 감지 — 다른 기기에서 수정 시 자동 반영
+  db.ref(DB_PATH).on('value', snap=>{
+    const d = snap.val();
+    if(!d) return;
+    // 현재 기기가 방금 저장한 경우 무시 (updatedAt 비교)
+    if(_lastSavedAt && d.updatedAt && d.updatedAt <= _lastSavedAt + 1000) return;
+    applyData(d);
+    renderDash();
+    renderCalendar();
+    updateBadges();
+    updateTC();
+    showSyncStatus('↻ 다른 기기에서 업데이트됨', '#7c3aed');
+  });
+
+  return true;
 }
 
-// 데이터 변경 시 자동 저장을 위해 원본 함수를 래핑
+let _lastSavedAt = 0;
+
+function applyData(d){
+  if(d.events)   events   = d.events;
+  if(d.notifs)   notifs   = d.notifs;
+  if(d.todos)    todos    = d.todos;
+  if(d.projects) projects = d.projects;
+  if(d.cats)     cats     = Object.assign({}, cats, d.cats);
+  if(typeof d.unread  === 'number') unread = d.unread;
+  if(typeof d.nextId  === 'number') nid    = d.nextId;
+  _lastSavedAt = d.updatedAt || 0;
+}
+
+// ── 동기화 상태 표시 (우측 하단 토스트) ─────────────────────
+let _syncToastTimer = null;
+function showSyncStatus(msg, color){
+  let el = document.getElementById('sync-toast');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'sync-toast';
+    el.style.cssText = `
+      position:fixed;bottom:24px;right:24px;z-index:9999;
+      padding:6px 14px;border-radius:99px;font-size:12px;font-weight:500;
+      background:var(--surface);border:1px solid var(--border2);
+      box-shadow:0 2px 8px rgba(0,0,0,.12);
+      transition:opacity .3s;pointer-events:none;
+    `;
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.style.color = color;
+  el.style.opacity = '1';
+  clearTimeout(_syncToastTimer);
+  _syncToastTimer = setTimeout(()=>{ el.style.opacity='0'; }, 3000);
+}
+
+// ── 데이터 변경 시 자동 Firebase 저장 (함수 래핑) ────────────
 const _origSaveEvent=saveEvent;
 saveEvent=function(){_origSaveEvent();saveToStorage();};
 
@@ -1754,7 +1867,7 @@ const _origSaveCatSettings=saveCatSettings;
 saveCatSettings=function(){_origSaveCatSettings();saveToStorage();};
 
 // ════════ Init ════════
-loadFromStorage(); // 저장된 데이터 복원
+loadFromStorage(); // Firebase에서 불러오기 + 실시간 감지 시작
 renderDash();
 renderCalendar();
 updateBadges();
