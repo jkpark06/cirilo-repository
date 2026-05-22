@@ -343,6 +343,7 @@ html,body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;b
 
 /* ── Responsive ── */
 @media(max-width:768px){
+  #cal-scroll-outer{max-height:calc(100vh - 180px)!important}
   .sidebar{display:none}.menu-btn{display:flex}
   .bnav{display:flex}.content{padding:16px 14px 80px}
   .topbar{padding:0 14px}.metrics-grid{grid-template-columns:repeat(2,1fr);gap:10px}
@@ -479,7 +480,10 @@ html,body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;b
           <button class="btn btn-g" style="height:32px;padding:0 12px;font-size:12px" onclick="openCatSettings()">카테고리</button>
         </div>
         <div id="cal-legend" class="cat-legend"></div>
-        <div style="overflow-x:auto"><div style="min-width:500px" id="cal-wrap"></div></div>
+        <!-- 2D 스크롤: 상하+좌우 동시 스크롤, 날짜행/시간열 sticky 고정 -->
+        <div id="cal-scroll-outer" style="overflow:auto;-webkit-overflow-scrolling:touch;max-height:calc(100vh - 220px);position:relative;border-radius:var(--rs);border:1px solid var(--border)">
+          <div id="cal-wrap"></div>
+        </div>
       </div>
     </div>
 
@@ -1142,100 +1146,108 @@ function renderCalendar(){
   if(calMode==='week')renderWeekCal();else renderMonthCal();
 }
 function renderWeekCal(){
-  const dates=getWkDates(weekOff);const s=dates[0],e=dates[6];
-  document.getElementById('week-lbl').textContent=`${s.getMonth()+1}월 ${s.getDate()}일 – ${e.getMonth()+1}월 ${e.getDate()}일`;
+  const dates=getWkDates(weekOff);
+  const s=dates[0],e=dates[6];
+  document.getElementById('week-lbl').textContent=
+    `${s.getMonth()+1}월 ${s.getDate()}일 – ${e.getMonth()+1}월 ${e.getDate()}일`;
 
-  // 헤더 행
-  let h='<div class="cal-grid wk"><div class="cal-hd"></div>';
+  const totalSlots=(CAL_END-CAL_START)*2;
+  const DAY_W=86; // 날짜 컬럼 너비(px)
+  const TIME_W=44; // 시간 컬럼 너비(px)
+
+  // ── <table> 방식: thead sticky(날짜행), 첫 td sticky(시간열) ──
+  let h=`<table style="border-collapse:collapse;width:100%;min-width:${TIME_W+DAY_W*7}px;table-layout:fixed">`;
+
+  // ── thead: 날짜 헤더 행 (상하 스크롤 시 고정) ──
+  h+=`<thead><tr>`;
+  // 좌상단 모서리 빈 칸 (시간열 + 날짜행 교차점)
+  h+=`<th style="width:${TIME_W}px;min-width:${TIME_W}px;
+    position:sticky;top:0;left:0;z-index:30;
+    background:var(--surface2);border-right:1px solid var(--border);border-bottom:2px solid var(--border)"></th>`;
+
   dates.forEach(d=>{
-    const dstr=ds(d),isT=dstr===TODAY,w=weatherMap[dstr]||'';
+    const dstr=ds(d),isT=dstr===TODAY;
     const red=isRedDay(dstr),hname=holidayName(dstr);
-    const dayColor=red?'color:#e03131;font-weight:600':'';
-    const dnStyle=red?'color:#e03131':'';
-    h+=`<div class="cal-hd${isT?' today':(red?' red-day':'')}">
+    const bg=isT?'background:color-mix(in srgb,var(--blue-bg) 60%,var(--surface2))':'background:var(--surface2)';
+    const dayColor=red?'color:#e03131;font-weight:600':'color:var(--text2)';
+    const dnStyle=isT?'':'';
+    const w=weatherMap[dstr]||'';
+    h+=`<th style="width:${DAY_W}px;min-width:${DAY_W}px;padding:6px 4px;text-align:center;
+      position:sticky;top:0;z-index:20;
+      ${bg};border-left:1px solid var(--border);border-bottom:2px solid var(--border);
+      font-weight:normal;line-height:1.3">
       <div style="font-size:11px;${dayColor}">${DAYS[d.getDay()]}</div>
-      <div class="cal-dn" style="${dnStyle}">${d.getDate()}</div>
-      ${hname?`<div style="font-size:9px;color:#e03131;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;padding:0 2px">${hname}</div>`:''}
-      ${w?`<div class="cal-wx">${w}</div>`:''}
-    </div>`;
+      <div style="font-size:13px;font-weight:500;${red&&!isT?'color:#e03131':''}${isT?`background:var(--blue);color:#fff;width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px`:''}">${d.getDate()}</div>
+      ${hname?`<div style="font-size:9px;color:#e03131;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%">${hname}</div>`:''}
+      ${w?`<div style="font-size:10px;color:var(--text3)">${w}</div>`:''}
+    </th>`;
   });
+  h+=`</tr></thead>`;
 
-  // 시간 슬롯: 30분 단위
-  const totalMins=(CAL_END-CAL_START)*60; // 720분
-  const totalSlots=(CAL_END-CAL_START)*2;  // 24슬롯
-
-  // 타임 컬럼 + 날짜 컬럼 (절대 위치 이벤트 블록)
-  // 왼쪽 타임 컬럼
-  let timeCol='';
+  // ── tbody: 시간 슬롯 행들 ──
+  h+=`<tbody>`;
   for(let i=0;i<totalSlots;i++){
     const hh=CAL_START+Math.floor(i/2);
     const mm=i%2===0?'00':'30';
-    const lbl=mm==='00'?`${String(hh).padStart(2,'0')}:00`:'';
-    timeCol+=`<div style="height:${SLOT_H}px;border-bottom:0.5px solid var(--border);display:flex;align-items:flex-start;justify-content:flex-end;padding-right:6px;padding-top:2px">
+    const tstr=`${String(hh).padStart(2,'0')}:${mm}`;
+    const lbl=mm==='00'?tstr:'';
+    const rowBorder=mm==='00'?'border-top:1px solid var(--border)':'border-top:1px dashed color-mix(in srgb,var(--border) 55%,transparent)';
+
+    h+=`<tr>`;
+    // ── 시간 레이블 셀 (좌우 스크롤 시 고정) ──
+    h+=`<td style="width:${TIME_W}px;min-width:${TIME_W}px;height:${SLOT_H}px;
+      position:sticky;left:0;z-index:10;
+      background:var(--surface2);border-right:1px solid var(--border);${rowBorder};
+      vertical-align:top;padding:2px 5px 0 0;text-align:right">
       <span style="font-size:10px;color:var(--text3);line-height:1">${lbl}</span>
-    </div>`;
-  }
-  h+=`<div class="cal-timecol" style="padding:0;min-width:44px">${timeCol}</div>`;
+    </td>`;
 
-  // 각 날짜 컬럼
-  dates.forEach(d=>{
-    const dstr=ds(d),isT=dstr===TODAY;
-    // 해당 날짜 이벤트 (캘린더 범위 내)
-    const dayEvs=events.filter(ev=>{
-      if(ev.date!==dstr)return false;
-      const [hh,mm]=ev.time.split(':').map(Number);
-      return hh>=CAL_START&&hh<CAL_END;
-    });
+    // ── 날짜별 슬롯 셀 ──
+    dates.forEach(d=>{
+      const dstr=ds(d),isT=dstr===TODAY;
+      const cellBg=isT?'background:color-mix(in srgb,var(--blue-bg) 14%,transparent)':'';
 
-    // 슬롯 배경 (클릭용)
-    let slots='';
-    for(let i=0;i<totalSlots;i++){
-      const hh=CAL_START+Math.floor(i/2);
-      const mm=i%2===0?'00':'30';
-      const tstr=`${String(hh).padStart(2,'0')}:${mm}`;
-      const borderStyle=mm==='00'?'border-top:0.5px solid var(--border)':'border-top:0.5px dashed color-mix(in srgb,var(--border) 60%,transparent)';
-      slots+=`<div style="height:${SLOT_H}px;${borderStyle};box-sizing:border-box"
+      // 이 슬롯에 시작하는 이벤트들
+      const slotEvs=events.filter(ev=>{
+        if(ev.date!==dstr)return false;
+        const [eh,em]=ev.time.split(':').map(Number);
+        return eh===hh&&em===parseInt(mm);
+      });
+
+      // 이 슬롯에 걸쳐있는(진행중인) 이벤트들 — 상단에서 이미 rowspan 처리됨
+      // rowspan 방식 대신 절대위치로 처리
+      h+=`<td style="width:${DAY_W}px;min-width:${DAY_W}px;height:${SLOT_H}px;
+        ${cellBg};${rowBorder};border-left:1px solid var(--border);
+        position:relative;vertical-align:top;padding:0;cursor:pointer"
         data-date="${dstr}" data-time="${tstr}"
         onclick="cellClick('${dstr}','${tstr}',event)"
         ondragover="dragOver(event,this)"
-        ondrop="dropEv(event,this)"></div>`;
-    }
+        ondrop="dropEv(event,this)">`;
 
-    // 이벤트 블록 (절대 위치)
-    let evBlocks='';
-    dayEvs.forEach(ev=>{
-      const [hh,mm]=ev.time.split(':').map(Number);
-      const startMin=(hh-CAL_START)*60+mm;
-      const dur=ev.dur||60;
-      const topPx=Math.round(startMin/30*SLOT_H);
-      const heightPx=Math.max(SLOT_H,Math.round(dur/30*SLOT_H))-2;
-      const col=catC(ev.cat);
-      evBlocks+=`<div class="cal-ev-abs" style="top:${topPx}px;height:${heightPx}px;background:${hex2rgba(col,.18)};color:${col};border-left:3px solid ${col}"
-        draggable="true" data-eid="${ev.id}"
-        onclick="event.stopPropagation();openEvModal(${ev.id})"
-        ondragstart="dragStart(event,${ev.id})">
-        <div style="font-size:11px;font-weight:600;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(ev.title)}</div>
-        ${heightPx>36?`<div style="font-size:10px;opacity:.75;line-height:1.2">${ev.time}${dur?' · '+durLabel(dur):''}</div>`:''}
-      </div>`;
+      // 이 슬롯에서 시작하는 이벤트 블록 (절대위치로 아래 행까지 겹침)
+      slotEvs.forEach(ev=>{
+        const dur=ev.dur||60;
+        const heightPx=Math.max(SLOT_H,Math.round(dur/30*SLOT_H))-2;
+        const col=catC(ev.cat);
+        h+=`<div class="cal-ev-abs" style="
+          position:absolute;top:1px;left:2px;right:2px;
+          height:${heightPx}px;z-index:5;
+          background:${hex2rgba(col,.18)};color:${col};border-left:3px solid ${col}"
+          draggable="true" data-eid="${ev.id}"
+          onclick="event.stopPropagation();openEvModal(${ev.id})"
+          ondragstart="dragStart(event,${ev.id})">
+          <div style="font-size:11px;font-weight:600;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(ev.title)}</div>
+          ${heightPx>36?`<div style="font-size:10px;opacity:.75;line-height:1.2">${ev.time}${dur?' · '+durLabel(dur):''}</div>`:''}
+        </div>`;
+      });
+
+      h+=`</td>`;
     });
+    h+=`</tr>`;
+  }
 
-    const totalH=totalSlots*SLOT_H;
-    h+=`<div style="position:relative;${isT?'background:color-mix(in srgb,var(--blue-bg) 18%,transparent)':''}">
-      <div style="position:absolute;inset:0;z-index:0">${slots}</div>
-      <div style="position:absolute;inset:0;z-index:1;pointer-events:none">${evBlocks}</div>
-      <div style="height:${totalH}px"></div>
-    </div>`;
-  });
-
-  h+='</div>';
+  h+=`</tbody></table>`;
   document.getElementById('cal-wrap').innerHTML=h;
-
-  // 이벤트 블록 pointer-events 활성화
-  document.querySelectorAll('.cal-ev-abs').forEach(el=>{
-    el.style.pointerEvents='auto';
-    const eid=el.dataset.eid;
-    el.addEventListener('dragstart',e=>dragStart(e,parseInt(eid)));
-  });
 }
 function renderMonthCal(){
   const now=new Date(TODAY);
