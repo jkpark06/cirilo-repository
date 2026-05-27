@@ -475,7 +475,28 @@ html,body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;b
   .cl-items-grid{grid-template-columns:repeat(2,1fr)!important}
 }
 
-/* ── Meetings ── */
+/* ── Rich Text Editor ── */
+.rte-wrap{border:1px solid var(--border2);border-radius:var(--rs);background:var(--surface);overflow:hidden}
+.rte-toolbar{display:flex;align-items:center;gap:2px;padding:6px 8px;background:var(--surface2);border-bottom:1px solid var(--border);flex-wrap:wrap}
+.rte-btn{width:28px;height:28px;border:none;border-radius:5px;background:none;cursor:pointer;color:var(--text2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;font-family:inherit;transition:background .12s;flex-shrink:0;padding:0}
+.rte-btn:hover{background:var(--border);color:var(--text)}
+.rte-btn.active{background:var(--blue-bg);color:var(--blue)}
+.rte-divider{width:1px;height:20px;background:var(--border);margin:0 3px;flex-shrink:0}
+.rte-color-btn{width:28px;height:28px;border-radius:5px;border:1.5px solid var(--border2);cursor:pointer;position:relative;overflow:hidden;flex-shrink:0}
+.rte-color-btn input[type=color]{position:absolute;inset:-4px;width:calc(100%+8px);height:calc(100%+8px);border:none;padding:0;cursor:pointer;opacity:0}
+.rte-color-preview{position:absolute;inset:3px;border-radius:2px;pointer-events:none}
+.rte-body{
+  min-height:100px;max-height:220px;overflow-y:auto;
+  padding:10px 12px;color:var(--text);font-size:13px;
+  line-height:1.7;outline:none;
+  font-family:inherit;
+}
+.rte-body:empty::before{content:attr(data-placeholder);color:var(--text3);pointer-events:none}
+.rte-body ul{padding-left:1.4em;margin:4px 0}
+.rte-body ol{padding-left:1.4em;margin:4px 0}
+.rte-body li{margin:2px 0}
+.rte-body blockquote{border-left:3px solid var(--blue);padding-left:10px;margin:4px 0;color:var(--text2)}
+.rte-select{height:26px;border:1px solid var(--border2);border-radius:5px;background:var(--surface);color:var(--text);font-size:11px;font-family:inherit;padding:0 4px;outline:none;cursor:pointer}
 .meeting-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:var(--rs);cursor:pointer;transition:background .12s;margin-bottom:3px;border:1px solid transparent}
 .meeting-row:hover{background:var(--surface2);border-color:var(--border)}
 .meeting-row-left{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
@@ -1126,9 +1147,15 @@ html,body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;b
       </div>
       <div style="height:12px"></div>
       <div class="ff"><label>참석자</label><input type="text" id="mt-attendees" placeholder="참석자 이름 (쉼표 구분)"></div>
-      <div class="ff"><label>안건 / 주요 내용</label><textarea id="mt-agenda" style="height:120px" placeholder="• 안건 1&#10;• 안건 2"></textarea></div>
-      <div class="ff"><label>결정 사항</label><textarea id="mt-decisions" style="height:100px" placeholder="• 결정 내용"></textarea></div>
-      <div class="ff"><label>Action Items (담당자 / 기한)</label><textarea id="mt-actions" style="height:100px" placeholder="• [홍길동] 보고서 작성 ~ 5/30&#10;• [김철수] API 개발 ~ 6/10"></textarea></div>
+      <div class="ff"><label>안건 / 주요 내용</label>
+        <div class="rte-wrap" id="rte-agenda-wrap"></div>
+      </div>
+      <div class="ff"><label>결정 사항</label>
+        <div class="rte-wrap" id="rte-decisions-wrap"></div>
+      </div>
+      <div class="ff"><label>Action Items (담당자 / 기한)</label>
+        <div class="rte-wrap" id="rte-actions-wrap"></div>
+      </div>
     </div>
     <div class="mfooter" style="flex-shrink:0;border-top:1px solid var(--border);padding-top:16px">
       <button class="btn btn-d" id="mt-del-btn" onclick="deleteMeeting()" style="margin-right:auto;display:none">삭제</button>
@@ -2524,6 +2551,132 @@ document.addEventListener('keydown',function(e){
   else if(document.getElementById('mt-detail-modal')&&document.getElementById('mt-detail-modal').classList.contains('open'))closeMeetingDetail();
 });
 
+// ════════ 리치 텍스트 에디터 ════════════════════════════════
+function rteToolbar(id){
+  return `<div class="rte-toolbar" onmousedown="return false">
+    <!-- 텍스트 서식 -->
+    <button class="rte-btn" onclick="rteCmd('${id}','bold')" title="굵게 (Ctrl+B)"><b>B</b></button>
+    <button class="rte-btn" onclick="rteCmd('${id}','italic')" title="기울임 (Ctrl+I)"><i>I</i></button>
+    <button class="rte-btn" onclick="rteCmd('${id}','underline')" title="밑줄 (Ctrl+U)"><u>U</u></button>
+    <button class="rte-btn" onclick="rteCmd('${id}','strikeThrough')" title="취소선"><s>S</s></button>
+    <div class="rte-divider"></div>
+    <!-- 글자 크기 -->
+    <select class="rte-select" onchange="rteFontSize('${id}',this.value)" title="글자 크기">
+      <option value="">크기</option>
+      <option value="1">아주 작게</option>
+      <option value="2">작게</option>
+      <option value="3" selected>보통</option>
+      <option value="4">크게</option>
+      <option value="5">아주 크게</option>
+    </select>
+    <div class="rte-divider"></div>
+    <!-- 글자 색상 -->
+    <div class="rte-color-btn" title="글자 색상">
+      <div class="rte-color-preview" id="${id}-fc" style="background:#ef4444"></div>
+      <input type="color" value="#ef4444" oninput="rteFontColor('${id}',this.value);document.getElementById('${id}-fc').style.background=this.value">
+    </div>
+    <!-- 배경 색상 -->
+    <div class="rte-color-btn" title="배경 색상" style="border-style:dashed">
+      <div class="rte-color-preview" id="${id}-bc" style="background:#fef08a"></div>
+      <input type="color" value="#fef08a" oninput="rteHighlight('${id}',this.value);document.getElementById('${id}-bc').style.background=this.value">
+    </div>
+    <div class="rte-divider"></div>
+    <!-- 글머리 기호 -->
+    <button class="rte-btn" onclick="rteCmd('${id}','insertUnorderedList')" title="글머리 기호 (•)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4" cy="6" r="1.5" fill="currentColor"/><circle cx="4" cy="12" r="1.5" fill="currentColor"/><circle cx="4" cy="18" r="1.5" fill="currentColor"/></svg>
+    </button>
+    <button class="rte-btn" onclick="rteCmd('${id}','insertOrderedList')" title="번호 목록">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg>
+    </button>
+    <!-- 들여쓰기 -->
+    <button class="rte-btn" onclick="rteCmd('${id}','indent')" title="들여쓰기">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><polyline points="9 12 13 12"/><line x1="13" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/><polyline points="3 9 7 12 3 15"/></svg>
+    </button>
+    <button class="rte-btn" onclick="rteCmd('${id}','outdent')" title="내어쓰기">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="9" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/><polyline points="7 9 3 12 7 15"/></svg>
+    </button>
+    <div class="rte-divider"></div>
+    <!-- 인용구 -->
+    <button class="rte-btn" onclick="rteBlockquote('${id}')" title="인용구">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+    </button>
+    <!-- 초기화 -->
+    <button class="rte-btn" onclick="rteCmd('${id}','removeFormat')" title="서식 초기화" style="margin-left:auto">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 12l6-6 6 6M6 12l6 6 6-6" opacity=".4"/><line x1="4" y1="20" x2="20" y2="20"/></svg>
+    </button>
+  </div>`;
+}
+
+function rteBody(id, placeholder){
+  return `<div id="${id}" class="rte-body" contenteditable="true"
+    data-placeholder="${placeholder.replace(/\n/g,'&#10;')}"
+    onkeydown="rteKeydown(event,'${id}')"
+    oninput="rteUpdateBtns('${id}')"></div>`;
+}
+
+function rteCmd(id, cmd, val){
+  document.getElementById(id).focus();
+  document.execCommand(cmd, false, val||null);
+  rteUpdateBtns(id);
+}
+function rteFontSize(id, val){
+  if(!val) return;
+  document.getElementById(id).focus();
+  document.execCommand('fontSize', false, val);
+}
+function rteFontColor(id, color){
+  document.getElementById(id).focus();
+  document.execCommand('foreColor', false, color);
+}
+function rteHighlight(id, color){
+  document.getElementById(id).focus();
+  document.execCommand('hiliteColor', false, color);
+}
+function rteBlockquote(id){
+  document.getElementById(id).focus();
+  document.execCommand('formatBlock', false, 'blockquote');
+}
+
+// Tab 키: 들여쓰기
+function rteKeydown(e, id){
+  if(e.key==='Tab'){
+    e.preventDefault();
+    if(e.shiftKey) rteCmd(id,'outdent');
+    else rteCmd(id,'indent');
+  }
+}
+
+// contenteditable ↔ HTML 변환
+function rteGetHTML(id){
+  const el = document.getElementById(id);
+  return el ? el.innerHTML : '';
+}
+function rteSetHTML(id, html){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.innerHTML = html || '';
+}
+
+// 버튼 활성 상태 업데이트
+function rteUpdateBtns(id){}  // 필요 시 확장
+
+// 에디터 초기화 (페이지 로드 시 1회)
+function initRteEditors(){
+  const fields=[
+    {wrap:'rte-agenda-wrap',    id:'mt-agenda-ed',    ph:'• 안건 1\n• 안건 2'},
+    {wrap:'rte-decisions-wrap', id:'mt-decisions-ed', ph:'• 결정 내용'},
+    {wrap:'rte-actions-wrap',   id:'mt-actions-ed',   ph:'• [홍길동] 보고서 ~ 5/30\n• [김철수] API 개발 ~ 6/10'},
+  ];
+  fields.forEach(f=>{
+    const wrap=document.getElementById(f.wrap);
+    if(!wrap)return;
+    wrap.innerHTML=rteToolbar(f.id)+`<div id="${f.id}" class="rte-body" contenteditable="true"
+      data-placeholder="${f.ph.replace(/\n/g,'&#10;')}"
+      onkeydown="rteKeydown(event,'${f.id}')"
+      oninput="rteUpdateBtns('${f.id}')"></div>`;
+  });
+}
+
 // ════════ 회의록 ════════
 const MT_CATS = {
   exec:{lbl:'임원회의', bg:'#f5f3ff', tc:'#5b21b6'},
@@ -2588,12 +2741,21 @@ function openMeetingModal(id){
     document.getElementById('mt-date').value=m.date||'';
     document.getElementById('mt-place').value=m.place||'';
     document.getElementById('mt-attendees').value=m.attendees||'';
-    document.getElementById('mt-agenda').value=m.agenda||'';
-    document.getElementById('mt-decisions').value=m.decisions||'';
-    document.getElementById('mt-actions').value=m.actions||'';
+    // 리치 에디터에 HTML 로드
+    setTimeout(()=>{
+      rteSetHTML('mt-agenda-ed', m.agenda||'');
+      rteSetHTML('mt-decisions-ed', m.decisions||'');
+      rteSetHTML('mt-actions-ed', m.actions||'');
+    }, 80);
     if(db)db.style.display='';
   } else {
-    ['mt-title','mt-place','mt-attendees','mt-agenda','mt-decisions','mt-actions'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
+    ['mt-title','mt-place','mt-attendees'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
+    // 에디터 초기화
+    setTimeout(()=>{
+      rteSetHTML('mt-agenda-ed','');
+      rteSetHTML('mt-decisions-ed','');
+      rteSetHTML('mt-actions-ed','');
+    }, 80);
     document.getElementById('mt-cat').value='exec';
     const now=new Date(),pad=n=>String(n).padStart(2,'0');
     document.getElementById('mt-date').value=`${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
@@ -2607,8 +2769,13 @@ function saveMeeting(){
   const title=document.getElementById('mt-title').value.trim();if(!title)return;
   const obj={title,cat:document.getElementById('mt-cat').value,date:document.getElementById('mt-date').value,
     place:document.getElementById('mt-place').value.trim(),attendees:document.getElementById('mt-attendees').value.trim(),
-    agenda:document.getElementById('mt-agenda').value.trim(),decisions:document.getElementById('mt-decisions').value.trim(),
-    actions:document.getElementById('mt-actions').value.trim()};
+    agenda:rteGetHTML('mt-agenda-ed'),
+    decisions:rteGetHTML('mt-decisions-ed'),
+    actions:rteGetHTML('mt-actions-ed')};
+  if(editingMeetingId){const idx=meetings.findIndex(x=>x.id===editingMeetingId);if(idx>=0)meetings[idx]={...meetings[idx],...obj};}
+  else meetings.push({id:uid(),...obj});
+  closeMeetingModal();renderMeetings();saveToStorage();
+}
   if(editingMeetingId){const idx=meetings.findIndex(x=>x.id===editingMeetingId);if(idx>=0)meetings[idx]={...meetings[idx],...obj};}
   else meetings.push({id:uid(),...obj});
   closeMeetingModal();renderMeetings();saveToStorage();
@@ -3152,13 +3319,13 @@ setInterval(checkEventAlarms, 60 * 1000);
 setTimeout(checkEventAlarms, 3000);
 
 // ════════ Init ════════
-loadFromStorage(); // Firebase에서 불러오기 + 실시간 감지 시작
+loadFromStorage();
 renderDash();
 renderCalendar();
 updateBadges();
 updateTC();
 fetchWeather();
-// 서비스 워커 등록 + 알림 권한 UI 초기화
+initRteEditors(); // 회의록 리치 에디터 초기화
 registerSW().then(()=>{ checkNotifPermUI(); });
 </script>
 </body>
