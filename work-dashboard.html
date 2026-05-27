@@ -2855,7 +2855,9 @@ function saveToStorage(){
   // localStorage도 병행 저장 (오프라인 폴백)
   try{
     localStorage.setItem('jkworld_v1', JSON.stringify({
-      events,notifs,todos,projects,meetings,folders,checklists,clItems,cats,unread,nextId:nid
+      events, notifs, todos, projects, meetings,
+      clFolders, clLists, clItems,
+      cats, unread, nextId: nid
     }));
   }catch(e){}
 
@@ -2864,7 +2866,7 @@ function saveToStorage(){
   _saveTimer = setTimeout(()=>{
     const payload = {
       events, notifs, todos, projects, meetings,
-      folders, checklists, clItems,
+      clFolders, clLists, clItems,   // 일관된 키명 사용
       cats, unread, nextId: nid, updatedAt: Date.now()
     };
     db.ref(DB_PATH).set(payload)
@@ -2951,21 +2953,50 @@ function loadFromStorage(){
 let _lastSavedAt = 0;
 
 function applyData(d){
-  if(d.events)     events     = d.events;
-  if(d.notifs)     notifs     = d.notifs;
-  if(d.todos)      todos      = d.todos;
-  if(d.projects)   projects   = d.projects;
-  if(d.meetings)   meetings   = d.meetings;
-  if(d.folders)    folders    = d.folders;
-  // 하위 호환: 이전 버전 필드명도 지원
-  if(d.clFolders&&!d.folders)  folders    = d.clFolders;
-  if(d.checklists) checklists = d.checklists;
-  if(d.clLists&&!d.checklists) checklists = d.clLists;
-  if(d.clItems)    clItems    = d.clItems;
-  if(d.cats)       cats       = Object.assign({}, cats, d.cats);
+  if(!d) return;
+  // ── 콘솔에 키 목록 출력 (디버깅용) ──
+  console.log('[applyData] Firebase 키:', Object.keys(d));
+
+  // events
+  if(Array.isArray(d.events))     events   = d.events;
+
+  // notifs
+  if(Array.isArray(d.notifs))     notifs   = d.notifs;
+
+  // todos
+  if(Array.isArray(d.todos))      todos    = d.todos;
+
+  // projects
+  if(Array.isArray(d.projects))   projects = d.projects;
+
+  // meetings
+  if(Array.isArray(d.meetings))   meetings = d.meetings;
+
+  // 체크리스트 폴더 — 가능한 모든 키명 지원
+  if(Array.isArray(d.clFolders))       clFolders = d.clFolders;
+  else if(Array.isArray(d.folders))    clFolders = d.folders;
+
+  // 체크리스트 리스트 — 가능한 모든 키명 지원
+  if(Array.isArray(d.clLists))         clLists = d.clLists;
+  else if(Array.isArray(d.checklists)) clLists = d.checklists;
+  else if(Array.isArray(d.lists))      clLists = d.lists;
+
+  // 체크리스트 항목
+  if(Array.isArray(d.clItems))         clItems = d.clItems;
+  else if(Array.isArray(d.items))      clItems = d.items;
+
+  // cats (카테고리 색상 설정)
+  if(d.cats && typeof d.cats === 'object') cats = Object.assign({}, cats, d.cats);
+
+  // 숫자값
   if(typeof d.unread  === 'number') unread = d.unread;
   if(typeof d.nextId  === 'number') nid    = d.nextId;
+
   _lastSavedAt = d.updatedAt || 0;
+
+  console.log('[applyData] 완료 — events:', events.length,
+    'todos:', todos.length, 'projects:', projects.length,
+    'meetings:', meetings.length);
 }
 
 // ── 동기화 상태 표시 (우측 하단 토스트) ─────────────────────
@@ -3021,475 +3052,6 @@ clearAll=function(){_origClearAll();saveToStorage();};
 
 const _origSaveCatSettings=saveCatSettings;
 saveCatSettings=function(){_origSaveCatSettings();saveToStorage();};
-
-// ════════ 체크리스트 ════════════════════════════════════════
-// 데이터 구조:
-//  folders[]: {id, name, emoji}
-//  checklists[]: {id, folderId, title, desc}
-//  clItems[]: {id, clId, text, memo, done, order}
-
-let folders = [
-  {id:1, name:'출장', emoji:'✈️'},
-  {id:2, name:'업무', emoji:'💼'},
-];
-let checklists = [
-  {id:1, folderId:1, title:'출장 준비물', desc:''},
-  {id:2, folderId:1, title:'PERMIT 서류', desc:'비자/허가 관련'},
-  {id:3, folderId:2, title:'주간 업무 체크', desc:''},
-];
-let clItems = [
-  {id:1, clId:1, text:'여권', memo:'유효기간 확인', done:false, order:0},
-  {id:2, clId:1, text:'항공권 인쇄', memo:'', done:false, order:1},
-  {id:3, clId:1, text:'현지 유심', memo:'', done:true,  order:2},
-  {id:4, clId:1, text:'숙소 예약 확인', memo:'', done:false, order:3},
-  {id:5, clId:2, text:'IQAMA 사본', memo:'', done:false, order:0},
-  {id:6, clId:2, text:'고용주 서명 서류', memo:'', done:false, order:1},
-  {id:7, clId:3, text:'주간 보고서 작성', memo:'매주 금요일', done:false, order:0},
-];
-
-let selectedFolderId = null;
-let editingFolderId  = null;
-let editingClId      = null;
-let editingClItemId  = null;
-let _pickedEmoji     = '📋';
-
-// ── 폴더 렌더 ──────────────────────────────────────────────
-function renderFolders(){
-  const el = document.getElementById('folder-list'); if(!el) return;
-  if(!folders.length){
-    el.innerHTML='<div style="color:var(--text3);font-size:12px;padding:8px 10px;text-align:center">폴더가 없습니다<br>+ 버튼으로 추가하세요</div>';
-    return;
-  }
-  el.innerHTML = folders.map(f=>{
-    const clCount = checklists.filter(c=>c.folderId===f.id).length;
-    const isActive = f.id === selectedFolderId;
-    return`<div class="folder-item${isActive?' active':''}" onclick="selectFolder(${f.id})">
-      <span class="folder-icon">${f.emoji||'📋'}</span>
-      <span class="folder-name">${esc(f.name)}</span>
-      <span class="folder-count">${clCount}</span>
-      <div class="folder-acts" onclick="event.stopPropagation()">
-        <button class="ta-btn" onclick="openFolderModal(${f.id})" style="width:20px;height:20px" title="수정">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-        </button>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function selectFolder(id){
-  selectedFolderId = id;
-  renderFolders();
-  renderClLists();
-}
-
-// ── 체크리스트 목록 렌더 ────────────────────────────────────
-function renderClLists(){
-  const headerEl = document.getElementById('cl-header');
-  const emptyEl  = document.getElementById('cl-empty-state');
-  const listEl   = document.getElementById('cl-list');
-  if(!listEl) return;
-
-  if(!selectedFolderId){
-    if(headerEl) headerEl.style.display='none';
-    if(emptyEl)  emptyEl.style.display='flex';
-    listEl.innerHTML=''; return;
-  }
-
-  const folder = folders.find(f=>f.id===selectedFolderId);
-  if(headerEl){
-    headerEl.style.display='';
-    const titleEl = document.getElementById('cl-folder-title');
-    if(titleEl) titleEl.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>${folder?folder.emoji+' '+esc(folder.name):''}`;
-    // 전체 통계
-    const myCls = checklists.filter(c=>c.folderId===selectedFolderId);
-    const myItems = clItems.filter(it=> myCls.some(c=>c.id===it.clId));
-    const doneItems = myItems.filter(it=>it.done);
-    const statsEl = document.getElementById('cl-folder-stats');
-    if(statsEl) statsEl.textContent=`목록 ${myCls.length}개 · 항목 ${myItems.length}개 · 완료 ${doneItems.length}개`;
-  }
-  if(emptyEl) emptyEl.style.display='none';
-
-  const myCls = checklists.filter(c=>c.folderId===selectedFolderId);
-  if(!myCls.length){
-    listEl.innerHTML=`<div class="empty-st"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><div>체크리스트가 없습니다<br>+ 목록 추가로 만드세요</div></div>`;
-    return;
-  }
-
-  listEl.innerHTML = myCls.map(cl=>{
-    const items   = clItems.filter(it=>it.clId===cl.id).sort((a,b)=>a.order-b.order);
-    const total   = items.length;
-    const done    = items.filter(it=>it.done).length;
-    const pct     = total>0 ? Math.round(done/total*100) : 0;
-    const allDone = total>0 && done===total;
-
-    const itemsHTML = items.map(it=>`
-      <div class="cl-item-row${it.done?' done-row':''}" onclick="toggleClItem(${it.id})">
-        <div class="cl-chk${it.done?' on':`"`}">
-          ${it.done?`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>`:''}
-        </div>
-        <div style="flex:1;min-width:0">
-          <span class="cl-item-text${it.done?' done-txt':''}">${esc(it.text)}</span>
-          ${it.memo?`<span class="cl-item-memo"> — ${esc(it.memo)}</span>`:''}
-        </div>
-        <div class="cl-item-acts">
-          <button class="ta-btn" onclick="event.stopPropagation();openClItemModal(${cl.id},${it.id})" style="width:20px;height:20px">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          </button>
-          <button class="ta-btn" onclick="event.stopPropagation();deleteClItem(${it.id})" style="width:20px;height:20px;color:var(--red-text)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-          </button>
-        </div>
-      </div>`).join('');
-
-    return`<div class="cl-card">
-      <div class="cl-card-hdr">
-        <div class="cl-card-left">
-          <div class="cl-card-title">
-            ${esc(cl.title)}
-            ${allDone&&total>0?`<span class="pri-b" style="background:var(--green-bg);color:var(--green-text);font-size:10px">완료 ✓</span>`:''}
-          </div>
-          ${cl.desc?`<div class="cl-card-desc">${esc(cl.desc)}</div>`:''}
-        </div>
-        <div class="cl-card-acts">
-          <span style="font-size:12px;font-weight:600;color:${pct===100?'var(--green)':'var(--text2)'};margin-right:6px">${done}/${total}</span>
-          <button class="pa-btn" onclick="openClModal(${cl.id})" title="수정">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          </button>
-          <button class="pa-btn" onclick="resetClItems(${cl.id})" title="전체 초기화">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
-          </button>
-          <button class="pa-btn del" onclick="deleteCl2(${cl.id})" title="삭제">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M9 6V4h6v2"/></svg>
-          </button>
-        </div>
-      </div>
-      ${total>0?`<div class="cl-progress"><div class="cl-progress-fill" style="width:${pct}%"></div></div>`:''}
-      ${itemsHTML}
-      <!-- 빠른 항목 추가 행 -->
-      <div class="cl-add-row">
-        <input class="cl-add-input" id="cl-quick-${cl.id}" placeholder="항목 추가..." onkeydown="if(event.key==='Enter')quickAddItem(${cl.id})">
-        <button class="btn btn-p" style="height:32px;padding:0 12px;font-size:12px;flex-shrink:0" onclick="quickAddItem(${cl.id})">추가</button>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-// ── 체크 항목 토글 ──────────────────────────────────────────
-function toggleClItem(id){
-  const it = clItems.find(x=>x.id===id); if(!it) return;
-  it.done = !it.done;
-  renderClLists(); saveToStorage();
-}
-
-// ── 빠른 항목 추가 (인라인) ─────────────────────────────────
-function quickAddItem(clId){
-  const inp = document.getElementById(`cl-quick-${clId}`);
-  if(!inp) return;
-  const text = inp.value.trim(); if(!text) return;
-  const maxOrder = Math.max(0, ...clItems.filter(x=>x.clId===clId).map(x=>x.order));
-  clItems.push({id:uid(), clId, text, memo:'', done:false, order:maxOrder+1});
-  inp.value='';
-  renderClLists(); saveToStorage();
-}
-
-// ── 체크 항목 삭제 ──────────────────────────────────────────
-function deleteClItem(id){
-  showCfm('항목을 삭제하시겠습니까?','삭제하면 되돌릴 수 없습니다.',()=>{
-    clItems = clItems.filter(x=>x.id!==id);
-    renderClLists(); saveToStorage();
-  });
-}
-
-// ── 전체 초기화 ─────────────────────────────────────────────
-function resetClItems(clId){
-  showCfm('모든 체크를 초기화하시겠습니까?','체크된 항목이 모두 해제됩니다.',()=>{
-    clItems.filter(x=>x.clId===clId).forEach(x=>x.done=false);
-    renderClLists(); saveToStorage();
-  });
-}
-
-// ── 폴더 모달 ───────────────────────────────────────────────
-function openFolderModal(id){
-  editingFolderId = id||null;
-  document.getElementById('folder-modal-title').textContent = id ? '폴더 수정' : '폴더 추가';
-  const db = document.getElementById('folder-del-btn');
-  if(id){
-    const f = folders.find(x=>x.id===id); if(!f) return;
-    document.getElementById('folder-name').value = f.name;
-    document.getElementById('folder-emoji').value = f.emoji||'';
-    _pickedEmoji = f.emoji||'📋';
-    if(db) db.style.display='';
-  } else {
-    document.getElementById('folder-name').value='';
-    document.getElementById('folder-emoji').value='';
-    _pickedEmoji='📋';
-    if(db) db.style.display='none';
-  }
-  document.getElementById('folder-modal').classList.add('open');
-  setTimeout(()=>document.getElementById('folder-name').focus(), 60);
-}
-function closeFolderModal(){document.getElementById('folder-modal').classList.remove('open');}
-function pickEmoji(e){
-  _pickedEmoji=e;
-  document.getElementById('folder-emoji').value=e;
-  document.querySelectorAll('#folder-emoji-picks span').forEach(s=>{
-    s.style.background = s.title===e ? 'var(--blue-bg)' : '';
-  });
-}
-function saveFolder(){
-  const name = document.getElementById('folder-name').value.trim(); if(!name) return;
-  const emoji = document.getElementById('folder-emoji').value.trim() || _pickedEmoji || '📋';
-  if(editingFolderId){
-    const f = folders.find(x=>x.id===editingFolderId); if(f){f.name=name;f.emoji=emoji;}
-  } else {
-    folders.push({id:uid(), name, emoji});
-  }
-  closeFolderModal(); renderFolders(); saveToStorage();
-}
-function deleteFolder(){
-  if(!editingFolderId) return;
-  showCfm('폴더를 삭제하시겠습니까?','폴더 내 모든 체크리스트와 항목이 삭제됩니다.',()=>{
-    const myCls = checklists.filter(c=>c.folderId===editingFolderId).map(c=>c.id);
-    clItems = clItems.filter(x=>!myCls.includes(x.clId));
-    checklists = checklists.filter(c=>c.folderId!==editingFolderId);
-    folders = folders.filter(x=>x.id!==editingFolderId);
-    if(selectedFolderId===editingFolderId) selectedFolderId=null;
-    closeFolderModal(); renderFolders(); renderClLists(); saveToStorage();
-  });
-}
-
-// ── 체크리스트 모달 ─────────────────────────────────────────
-function openClModal(id){
-  editingClId = id||null;
-  document.getElementById('cl-modal-title').textContent = id ? '체크리스트 수정' : '체크리스트 추가';
-  const db = document.getElementById('cl-del-btn');
-  if(id){
-    const cl = checklists.find(x=>x.id===id); if(!cl) return;
-    document.getElementById('cl-title').value = cl.title;
-    document.getElementById('cl-desc').value  = cl.desc||'';
-    if(db) db.style.display='';
-  } else {
-    document.getElementById('cl-title').value='';
-    document.getElementById('cl-desc').value='';
-    if(db) db.style.display='none';
-  }
-  document.getElementById('cl-modal').classList.add('open');
-  setTimeout(()=>document.getElementById('cl-title').focus(), 60);
-}
-function closeClModal(){document.getElementById('cl-modal').classList.remove('open');}
-function saveCl(){
-  const title = document.getElementById('cl-title').value.trim(); if(!title) return;
-  const desc  = document.getElementById('cl-desc').value.trim();
-  if(editingClId){
-    const cl = checklists.find(x=>x.id===editingClId); if(cl){cl.title=title;cl.desc=desc;}
-  } else {
-    if(!selectedFolderId) return;
-    checklists.push({id:uid(), folderId:selectedFolderId, title, desc});
-  }
-  closeClModal(); renderFolders(); renderClLists(); saveToStorage();
-}
-function deleteCl(){
-  if(!editingClId) return; deleteCl2(editingClId); closeClModal();
-}
-function deleteCl2(id){
-  showCfm('체크리스트를 삭제하시겠습니까?','모든 항목이 함께 삭제됩니다.',()=>{
-    clItems = clItems.filter(x=>x.clId!==id);
-    checklists = checklists.filter(x=>x.id!==id);
-    renderFolders(); renderClLists(); saveToStorage();
-  });
-}
-
-// ── 항목 모달 (상세 편집) ───────────────────────────────────
-function openClItemModal(clId, itemId){
-  editingClItemId = itemId||null;
-  document.getElementById('clitem-modal-title').textContent = itemId ? '항목 수정' : '항목 추가';
-  if(itemId){
-    const it = clItems.find(x=>x.id===itemId); if(!it) return;
-    document.getElementById('clitem-text').value = it.text;
-    document.getElementById('clitem-memo').value = it.memo||'';
-  } else {
-    document.getElementById('clitem-text').value='';
-    document.getElementById('clitem-memo').value='';
-  }
-  document.getElementById('clitem-modal').dataset.clid = clId;
-  document.getElementById('clitem-modal').classList.add('open');
-  setTimeout(()=>document.getElementById('clitem-text').focus(), 60);
-}
-function closeClItemModal(){document.getElementById('clitem-modal').classList.remove('open');}
-function saveClItem(){
-  const text = document.getElementById('clitem-text').value.trim(); if(!text) return;
-  const memo = document.getElementById('clitem-memo').value.trim();
-  if(editingClItemId){
-    const it = clItems.find(x=>x.id===editingClItemId); if(it){it.text=text;it.memo=memo;}
-  } else {
-    const clId = parseInt(document.getElementById('clitem-modal').dataset.clid);
-    const maxOrder = Math.max(0, ...clItems.filter(x=>x.clId===clId).map(x=>x.order));
-    clItems.push({id:uid(), clId, text, memo, done:false, order:maxOrder+1});
-  }
-  closeClItemModal(); renderClLists(); saveToStorage();
-}
-
-// ── 체크리스트 switchView 연동 ──────────────────────────────
-// (기존 switchView에 추가)
-const _origSwitchViewForCl = switchView;
-switchView = function(name, el){
-  _origSwitchViewForCl(name, el);
-  if(name==='checklists'){ renderFolders(); renderClLists(); }
-};
-
-// ── 모달 backdrop & Enter 키 ────────────────────────────────
-['folder-modal','cl-modal','clitem-modal'].forEach(id=>{
-  const el = document.getElementById(id);
-  if(el){
-    el.addEventListener('click', function(e){ if(e.target===this) this.classList.remove('open'); });
-    el.addEventListener('keydown', function(e){
-      if(e.key==='Enter' && e.target.tagName!=='TEXTAREA'){
-        e.preventDefault();
-        if(id==='folder-modal') saveFolder();
-        else if(id==='cl-modal') saveCl();
-        else if(id==='clitem-modal') saveClItem();
-      }
-      if(e.key==='Escape') this.classList.remove('open');
-    });
-  }
-});
-
-// ════════ 체크리스트 Firebase 저장 포함 ════════
-let swRegistration = null;
-
-// ── 서비스 워커 등록 ─────────────────────────────────────────
-async function registerSW(){
-  if(!('serviceWorker' in navigator)){
-    console.warn('서비스 워커 미지원 브라우저');
-    return null;
-  }
-  try{
-    const reg = await navigator.serviceWorker.register('./sw.js', {scope:'./'});
-    swRegistration = reg;
-    console.log('[SW] 등록 완료:', reg.scope);
-    return reg;
-  }catch(err){
-    console.warn('[SW] 등록 실패:', err);
-    return null;
-  }
-}
-
-// ── 알림 권한 요청 ───────────────────────────────────────────
-async function requestNotifPermission(){
-  if(!('Notification' in window)){
-    showSyncStatus('이 브라우저는 알림을 지원하지 않습니다', '#ef4444');
-    return;
-  }
-  const permission = await Notification.requestPermission();
-  if(permission === 'granted'){
-    showSyncStatus('✓ 알림이 활성화되었습니다!', '#10b981');
-    document.getElementById('notif-perm-btn').style.display = 'none';
-    // 테스트 알림 발송
-    setTimeout(()=>sendNotification('Odyssey HQ 알림 활성화', '일정 알림이 설정되었습니다 ✅', 'test'), 500);
-  } else {
-    showSyncStatus('알림 권한이 거부되었습니다', '#ef4444');
-  }
-  checkNotifPermUI();
-}
-
-// ── 권한 상태에 따라 UI 업데이트 ────────────────────────────
-function checkNotifPermUI(){
-  const btn = document.getElementById('notif-perm-btn');
-  if(!btn) return;
-  if(!('Notification' in window)){
-    btn.style.display = 'none';
-    return;
-  }
-  if(Notification.permission === 'granted'){
-    btn.style.display = 'none';  // 이미 허용 → 버튼 숨김
-  } else if(Notification.permission === 'denied'){
-    btn.style.display = 'none';  // 거부됨 → 버튼 숨김 (설정에서만 변경 가능)
-  } else {
-    btn.style.display = 'flex';  // default → 버튼 표시
-    btn.title = '알림 권한 허용하기';
-  }
-}
-
-// ── 실제 알림 발송 ───────────────────────────────────────────
-async function sendNotification(title, body, tag='odyssey'){
-  if(!('Notification' in window)) return;
-  if(Notification.permission !== 'granted') return;
-
-  const options = {
-    body,
-    tag,
-    icon:    './icon-192.png',  // GitHub에 업로드한 아이콘 (없으면 기본값)
-    badge:   './icon-192.png',
-    vibrate: [200, 100, 200],
-    requireInteraction: false,
-    data: { url: './' },
-    actions:[
-      {action:'open',    title:'열기'},
-      {action:'dismiss', title:'닫기'},
-    ]
-  };
-
-  // 서비스 워커 통해 알림 (백그라운드 지원)
-  if(swRegistration && swRegistration.active){
-    swRegistration.active.postMessage({
-      type: 'SHOW_NOTIFICATION',
-      payload: { title, body, tag, data:{url:'./'} }
-    });
-  } else {
-    // 폴백: 직접 Notification API
-    try{ new Notification(title, options); }catch(e){}
-  }
-}
-
-// ── 일정 알림 스케줄러 (1분마다 체크) ───────────────────────
-const _firedNotifs = new Set(); // 중복 방지
-
-function checkEventAlarms(){
-  if(Notification.permission !== 'granted') return;
-
-  const now     = new Date();
-  const nowMs   = now.getTime();
-  const todayStr = ds(now);
-
-  events.forEach(ev=>{
-    if(!ev.date || !ev.time) return;
-    // 이벤트 시작 시각 (밀리초)
-    const [hh,mm] = ev.time.split(':').map(Number);
-    const evDate  = new Date(`${ev.date}T${ev.time}:00`);
-    const evMs    = evDate.getTime();
-
-    // 알림 시점: remind 분 전 (기본 10분)
-    const remindMins = parseInt(ev.remind || 10);
-    const alarmMs    = evMs - remindMins * 60 * 1000;
-    const alarmKey   = `${ev.id}-${remindMins}`;
-
-    // 알람 시각이 지금으로부터 ±30초 이내이고 아직 발송 안 했으면
-    const diff = nowMs - alarmMs;
-    if(diff >= -30000 && diff <= 30000 && !_firedNotifs.has(alarmKey)){
-      _firedNotifs.add(alarmKey);
-      const catName  = catL(ev.cat) || '';
-      const timeStr  = ev.time;
-      const dateStr2 = ev.date===todayStr ? '오늘' : fmtS(ev.date);
-      sendNotification(
-        `📅 ${ev.title}`,
-        `${dateStr2} ${timeStr} | ${catName} | ${remindMins}분 후 시작`,
-        `ev-${ev.id}`
-      );
-      // 앱 내 알림 목록에도 추가
-      notifs.unshift({
-        id: uid(),
-        title: `${ev.title} — ${remindMins}분 후 시작`,
-        desc:  `${dateStr2} ${timeStr} · ${catName}`,
-        time:  '방금',
-        type:  'meeting',
-        read:  false
-      });
-      unread++;
-      updateBadges();
-      saveToStorage();
-    }
-  });
-}
 
 // 1분마다 알람 체크
 setInterval(checkEventAlarms, 60 * 1000);
