@@ -2776,10 +2776,6 @@ function saveMeeting(){
   else meetings.push({id:uid(),...obj});
   closeMeetingModal();renderMeetings();saveToStorage();
 }
-  if(editingMeetingId){const idx=meetings.findIndex(x=>x.id===editingMeetingId);if(idx>=0)meetings[idx]={...meetings[idx],...obj};}
-  else meetings.push({id:uid(),...obj});
-  closeMeetingModal();renderMeetings();saveToStorage();
-}
 function deleteMeeting(){if(!editingMeetingId)return;deleteMeetingById(editingMeetingId);closeMeetingModal();}
 function deleteMeetingById(id){
   showCfm('회의록을 삭제하시겠습니까?','삭제하면 되돌릴 수 없습니다.',()=>{meetings=meetings.filter(x=>x.id!==id);renderMeetings();saveToStorage();});
