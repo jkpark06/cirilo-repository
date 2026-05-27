@@ -448,18 +448,31 @@ html,body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;b
 }
 
 @media(max-width:768px){
-  /* ── 체크리스트 모바일 ── */
+  /* ── 체크리스트 모바일 완전 재설계 ── */
   #cl-layout{
-    grid-template-columns:1fr!important;
-    gap:12px!important;
+    display:block!important;   /* grid → block으로 변경 */
+    width:100%;
   }
-  /* 폴더 패널: 기본 표시 */
-  #cl-folder-panel-wrap{display:block}
-  /* 리스트 패널: 폴더 선택 전 숨김, 선택 후 표시 */
-  #cl-list-panel{display:none}
-  #cl-list-panel.mobile-visible{display:block}
+  /* 폴더 패널: 기본 표시, 고정 높이 없음 */
+  #cl-folder-panel-wrap{
+    display:block!important;
+    width:100%;
+    margin-bottom:0;
+  }
+  /* 리스트 패널: 기본 숨김 */
+  #cl-list-panel{
+    display:none!important;
+    width:100%;
+    margin-top:0;
+  }
+  /* 폴더 선택 시 리스트 패널 표시 */
+  #cl-list-panel.mobile-visible{
+    display:block!important;
+  }
   /* 뒤로가기 버튼 모바일에서만 표시 */
   #cl-back-btn{display:flex!important}
+  /* 아이템 그리드: 모바일 2열 */
+  .cl-items-grid{grid-template-columns:repeat(2,1fr)!important}
 }
 
 /* ── Meetings ── */
@@ -883,7 +896,7 @@ html,body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;b
     <div class="view" id="view-checklists">
       <div style="display:grid;grid-template-columns:260px 1fr;gap:16px;align-items:start" id="cl-layout">
         <!-- 폴더 패널 -->
-        <div id="cl-folder-panel-wrap" class="card" style="margin-bottom:0">
+        <div id="cl-folder-panel-wrap" class="card" style="margin-bottom:0;overflow:visible">
           <div class="card-hdr">
             <div class="card-title" style="margin-bottom:0">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
@@ -2658,30 +2671,30 @@ function selectFolder(fid){
   clActiveFolderId=fid; clActiveListId=null;
   renderFolders(); renderListPanel();
 
-  // 모바일: 폴더 패널 숨기고 리스트 패널 표시
-  const isMobile = window.innerWidth <= 768;
-  if(isMobile){
-    const folderWrap = document.getElementById('cl-folder-panel-wrap');
-    const listPanel  = document.getElementById('cl-list-panel');
-    const backBtn    = document.getElementById('cl-back-btn');
-    if(folderWrap) folderWrap.style.display = 'none';
-    if(listPanel)  { listPanel.style.display = 'block'; listPanel.classList.add('mobile-visible'); }
-    if(backBtn)    backBtn.style.display = 'flex';
+  if(window.innerWidth <= 768){
+    // 모바일: 폴더 패널 완전히 숨기고 리스트만 표시
+    const fw = document.getElementById('cl-folder-panel-wrap');
+    const lp = document.getElementById('cl-list-panel');
+    const bb = document.getElementById('cl-back-btn');
+    if(fw){ fw.style.cssText='display:none!important'; }
+    if(lp){ lp.style.cssText='display:block!important;width:100%'; lp.classList.add('mobile-visible'); }
+    if(bb){ bb.style.cssText='display:flex!important'; }
+    window.scrollTo(0,0);
   } else {
-    // PC: 둘 다 표시
-    const panel = document.getElementById('cl-list-panel');
-    if(panel){ panel.style.display='block'; panel.classList.add('mobile-visible'); }
+    // PC: 리스트 패널 표시
+    const lp = document.getElementById('cl-list-panel');
+    if(lp){ lp.style.cssText=''; lp.classList.add('mobile-visible'); }
   }
 }
 
-// 모바일: 폴더 목록으로 돌아가기
 function clGoBack(){
-  const folderWrap = document.getElementById('cl-folder-panel-wrap');
-  const listPanel  = document.getElementById('cl-list-panel');
-  const backBtn    = document.getElementById('cl-back-btn');
-  if(folderWrap) folderWrap.style.display = '';
-  if(listPanel)  { listPanel.style.display = 'none'; listPanel.classList.remove('mobile-visible'); }
-  if(backBtn)    backBtn.style.display = 'none';
+  const fw = document.getElementById('cl-folder-panel-wrap');
+  const lp = document.getElementById('cl-list-panel');
+  const bb = document.getElementById('cl-back-btn');
+  if(fw){ fw.style.cssText=''; }
+  if(lp){ lp.style.cssText='display:none!important'; lp.classList.remove('mobile-visible'); }
+  if(bb){ bb.style.cssText='display:none!important'; }
+  window.scrollTo(0,0);
 }
 function renderListPanel(){
   const titleEl=document.getElementById('cl-panel-title');
