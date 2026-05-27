@@ -2901,6 +2901,8 @@ function loadFromStorage(){
   db.ref(DB_PATH).once('value')
     .then(snap=>{
       const firebaseData = snap.val();
+      console.log('[Firebase] snap.val() 키:', firebaseData ? Object.keys(firebaseData) : 'null');
+      console.log('[Firebase] events 수:', firebaseData?.events?.length, 'todos 수:', firebaseData?.todos?.length);
 
       if(firebaseData && firebaseData.updatedAt){
         // ✅ Firebase에 데이터 있음 → 무조건 Firebase 사용
@@ -3052,6 +3054,46 @@ clearAll=function(){_origClearAll();saveToStorage();};
 
 const _origSaveCatSettings=saveCatSettings;
 saveCatSettings=function(){_origSaveCatSettings();saveToStorage();};
+
+// ════════ 일정 알림 체크 ════════════════════════════════════
+const _firedNotifs = new Set();
+
+function checkEventAlarms(){
+  if(!('Notification' in window)) return;
+  if(Notification.permission !== 'granted') return;
+
+  const now    = new Date();
+  const nowMs  = now.getTime();
+  const todayStr = _todayStr();
+
+  events.forEach(ev=>{
+    if(!ev.date || !ev.time) return;
+    const evDate  = new Date(`${ev.date}T${ev.time}:00`);
+    const evMs    = evDate.getTime();
+    const remindMins = parseInt(ev.remind || 10);
+    const alarmMs    = evMs - remindMins * 60 * 1000;
+    const alarmKey   = `${ev.id}-${remindMins}`;
+    const diff = nowMs - alarmMs;
+    if(diff >= -30000 && diff <= 30000 && !_firedNotifs.has(alarmKey)){
+      _firedNotifs.add(alarmKey);
+      const catName  = catL(ev.cat) || '';
+      const dateStr2 = ev.date===todayStr ? '오늘' : fmtS(ev.date);
+      sendNotification(
+        `📅 ${ev.title}`,
+        `${dateStr2} ${ev.time} | ${catName} | ${remindMins}분 후 시작`,
+        `ev-${ev.id}`
+      );
+      notifs.unshift({
+        id: uid(), title: `${ev.title} — ${remindMins}분 후 시작`,
+        desc: `${dateStr2} ${ev.time} · ${catName}`,
+        time: '방금', type: 'meeting', read: false
+      });
+      unread++;
+      updateBadges();
+      saveToStorage();
+    }
+  });
+}
 
 // 1분마다 알람 체크
 setInterval(checkEventAlarms, 60 * 1000);
