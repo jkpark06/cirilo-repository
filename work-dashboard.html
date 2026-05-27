@@ -448,9 +448,18 @@ html,body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;b
 }
 
 @media(max-width:768px){
-  #cl-layout{grid-template-columns:1fr!important}
+  /* ── 체크리스트 모바일 ── */
+  #cl-layout{
+    grid-template-columns:1fr!important;
+    gap:12px!important;
+  }
+  /* 폴더 패널: 기본 표시 */
+  #cl-folder-panel-wrap{display:block}
+  /* 리스트 패널: 폴더 선택 전 숨김, 선택 후 표시 */
   #cl-list-panel{display:none}
   #cl-list-panel.mobile-visible{display:block}
+  /* 뒤로가기 버튼 모바일에서만 표시 */
+  #cl-back-btn{display:flex!important}
 }
 
 /* ── Meetings ── */
@@ -494,8 +503,7 @@ html,body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;b
 .cl-add-input{flex:1;height:32px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--bg);color:var(--text);padding:0 10px;font-size:13px;font-family:inherit;outline:none}
 .cl-add-input:focus{border-color:var(--blue)}
 @media(max-width:768px){
-  #view-checklists > div{flex-direction:column!important;height:auto!important}
-  #view-checklists > div > div:first-child{width:100%!important;max-height:150px!important}
+  /* (checklist layout handled above) */
 }
 
 /* ── WBS ── */
@@ -875,7 +883,7 @@ html,body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;b
     <div class="view" id="view-checklists">
       <div style="display:grid;grid-template-columns:260px 1fr;gap:16px;align-items:start" id="cl-layout">
         <!-- 폴더 패널 -->
-        <div class="card" style="margin-bottom:0">
+        <div id="cl-folder-panel-wrap" class="card" style="margin-bottom:0">
           <div class="card-hdr">
             <div class="card-title" style="margin-bottom:0">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
@@ -889,11 +897,17 @@ html,body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;b
         <div id="cl-list-panel">
           <div class="card" style="margin-bottom:0">
             <div class="card-hdr">
-              <div class="card-title" style="margin-bottom:0">
+              <div class="card-title" style="margin-bottom:0;flex:1;min-width:0">
+                <!-- 모바일 뒤로가기 버튼 (PC에선 숨김) -->
+                <button id="cl-back-btn" onclick="clGoBack()"
+                  style="display:none;align-items:center;gap:4px;border:none;background:none;color:var(--blue);font-size:13px;font-weight:600;cursor:pointer;padding:0;font-family:inherit;flex-shrink:0;margin-right:6px">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+                  폴더
+                </button>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-                <span id="cl-panel-title">폴더를 선택하세요</span>
+                <span id="cl-panel-title" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">폴더를 선택하세요</span>
               </div>
-              <button class="btn btn-p" id="cl-add-list-btn" style="height:28px;padding:0 10px;font-size:11px;display:none" onclick="openListModal(null)">+ 리스트</button>
+              <button class="btn btn-p" id="cl-add-list-btn" style="height:28px;padding:0 10px;font-size:11px;display:none;flex-shrink:0" onclick="openListModal(null)">+ 리스트</button>
             </div>
             <div id="cl-list-area">
               <div class="empty-st">
@@ -2641,9 +2655,33 @@ function renderFolders(){
   }).join('');
 }
 function selectFolder(fid){
-  clActiveFolderId=fid;clActiveListId=null;
-  renderFolders();renderListPanel();
-  const p=document.getElementById('cl-list-panel');if(p)p.classList.add('mobile-visible');
+  clActiveFolderId=fid; clActiveListId=null;
+  renderFolders(); renderListPanel();
+
+  // 모바일: 폴더 패널 숨기고 리스트 패널 표시
+  const isMobile = window.innerWidth <= 768;
+  if(isMobile){
+    const folderWrap = document.getElementById('cl-folder-panel-wrap');
+    const listPanel  = document.getElementById('cl-list-panel');
+    const backBtn    = document.getElementById('cl-back-btn');
+    if(folderWrap) folderWrap.style.display = 'none';
+    if(listPanel)  { listPanel.style.display = 'block'; listPanel.classList.add('mobile-visible'); }
+    if(backBtn)    backBtn.style.display = 'flex';
+  } else {
+    // PC: 둘 다 표시
+    const panel = document.getElementById('cl-list-panel');
+    if(panel){ panel.style.display='block'; panel.classList.add('mobile-visible'); }
+  }
+}
+
+// 모바일: 폴더 목록으로 돌아가기
+function clGoBack(){
+  const folderWrap = document.getElementById('cl-folder-panel-wrap');
+  const listPanel  = document.getElementById('cl-list-panel');
+  const backBtn    = document.getElementById('cl-back-btn');
+  if(folderWrap) folderWrap.style.display = '';
+  if(listPanel)  { listPanel.style.display = 'none'; listPanel.classList.remove('mobile-visible'); }
+  if(backBtn)    backBtn.style.display = 'none';
 }
 function renderListPanel(){
   const titleEl=document.getElementById('cl-panel-title');
