@@ -3137,6 +3137,7 @@ function clDragEnd(e){
   document.querySelectorAll('.cl-item.drag-over').forEach(el=>el.classList.remove('drag-over'));
   _clDragId = null; _clDragListId = null;
 }
+function addQuickItem(listId){
   const inp=document.getElementById(`cl-quick-${listId}`);if(!inp)return;
   const text=inp.value.trim();if(!text)return;
   clItems.push({id:uid(),listId,text,memo:'',checked:false});
