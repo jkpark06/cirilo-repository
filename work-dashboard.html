@@ -517,6 +517,10 @@ html,body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;b
   background:var(--surface);color:var(--text);
   font-size:11px;font-family:inherit;padding:0 2px;outline:none;cursor:pointer
 }
+/* ── Meeting Detail body ul/li 박스 안쪽 정렬 ── */
+#mt-detail-body ul,#mt-detail-body ol{padding-left:1.5em;margin:4px 0;box-sizing:border-box;max-width:100%}
+#mt-detail-body li{margin:3px 0;word-break:break-word;overflow-wrap:break-word}
+#mt-detail-body div{max-width:100%;box-sizing:border-box}
 .meeting-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:var(--rs);cursor:pointer;transition:background .12s;margin-bottom:3px;border:1px solid transparent}
 .meeting-row:hover{background:var(--surface2);border-color:var(--border)}
 .meeting-row-left{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
@@ -2941,19 +2945,24 @@ function openMeetingDetail(id){
   function renderField(content, bg){
     if(!content) return '';
     const WB = 'word-break:break-word;overflow-wrap:break-word';
+    // ul/li가 박스를 벗어나지 않도록 공통 스타일
+    const boxStyle = `font-size:13px;color:var(--text);line-height:1.7;
+      background:${bg};border-radius:var(--rs);${WB};
+      padding:10px 12px 10px 12px;overflow:hidden`;
+
     const preMatch = content.match(/^<pre[^>]*>([\s\S]*?)<\/pre>$/i);
     if(preMatch){
       const inner = preMatch[1];
       const hasInnerHTML = /<[a-z][\s\S]*>/i.test(inner);
       if(hasInnerHTML){
-        return `<div style="font-size:13px;color:var(--text);line-height:1.7;background:${bg};padding:10px 12px;border-radius:var(--rs);${WB}">${inner}</div>`;
+        return `<div style="${boxStyle}">${inner}</div>`;
       } else {
         return `<pre style="font-size:13px;color:var(--text);white-space:pre-wrap;${WB};font-family:inherit;line-height:1.6;margin:0;background:${bg};padding:10px 12px;border-radius:var(--rs)">${esc(inner)}</pre>`;
       }
     }
     const isHTML = /<[a-z][\s\S]*>/i.test(content);
     if(isHTML){
-      return `<div style="font-size:13px;color:var(--text);line-height:1.7;background:${bg};padding:10px 12px;border-radius:var(--rs);${WB}">${content}</div>`;
+      return `<div style="${boxStyle}">${content}</div>`;
     }
     return `<pre style="font-size:13px;color:var(--text);white-space:pre-wrap;${WB};font-family:inherit;line-height:1.6;margin:0;background:${bg};padding:10px 12px;border-radius:var(--rs)">${esc(content)}</pre>`;
   }
