@@ -822,17 +822,43 @@ html,body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;b
 
         <!-- ── 메트릭 카드 ── -->
         <div class="metrics-grid">
+          <!-- 일정 카드: 오늘 | 이번 주 -->
           <div class="metric-card" onclick="switchView('calendar',null)">
             <div class="metric-icon" style="background:#eef2ff;color:#6366f1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
-            <div class="metric-label">이번 주 일정</div>
-            <div class="metric-value" id="m-ev">—</div>
-            <div class="metric-sub" style="color:var(--green)" id="m-ev-s"></div>
+            <div class="metric-label">일정</div>
+            <div style="display:flex;align-items:flex-end;gap:0;width:100%;margin-top:4px">
+              <!-- 오늘 -->
+              <div style="flex:1;border-right:1px solid var(--border);padding-right:10px">
+                <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px">오늘</div>
+                <div class="metric-value" id="m-ev-today" style="font-size:26px">—</div>
+                <div style="font-size:10px;color:var(--green);margin-top:3px;font-weight:500" id="m-ev-today-s"></div>
+              </div>
+              <!-- 이번 주 -->
+              <div style="flex:1;padding-left:10px">
+                <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px">이번 주</div>
+                <div class="metric-value" id="m-ev" style="font-size:26px">—</div>
+                <div style="font-size:10px;color:var(--text2);margin-top:3px;font-weight:500" id="m-ev-s"></div>
+              </div>
+            </div>
           </div>
+          <!-- 할 일 카드: 오늘 | 이번 주 -->
           <div class="metric-card" onclick="switchView('todos',null)">
             <div class="metric-icon" style="background:#ecfdf5;color:#10b981"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><rect x="3" y="3" width="18" height="18" rx="2"/></svg></div>
-            <div class="metric-label">미완료 할 일</div>
-            <div class="metric-value" id="m-td">—</div>
-            <div class="metric-sub" style="color:var(--amber)" id="m-td-s"></div>
+            <div class="metric-label">할 일</div>
+            <div style="display:flex;align-items:flex-end;gap:0;width:100%;margin-top:4px">
+              <!-- 오늘 미완료 -->
+              <div style="flex:1;border-right:1px solid var(--border);padding-right:10px">
+                <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px">오늘</div>
+                <div class="metric-value" id="m-td-today" style="font-size:26px">—</div>
+                <div style="font-size:10px;color:var(--amber);margin-top:3px;font-weight:500" id="m-td-today-s"></div>
+              </div>
+              <!-- 이번 주 미완료 -->
+              <div style="flex:1;padding-left:10px">
+                <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px">이번 주</div>
+                <div class="metric-value" id="m-td" style="font-size:26px">—</div>
+                <div style="font-size:10px;color:var(--amber);margin-top:3px;font-weight:500" id="m-td-s"></div>
+              </div>
+            </div>
           </div>
           <div class="metric-card" onclick="switchView('projects',null)">
             <div class="metric-icon" style="background:#f5f3ff;color:#8b5cf6"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
@@ -1771,17 +1797,46 @@ function renderDash(){
   requestAnimationFrame(()=>requestAnimationFrame(syncCardHeights));
 }
 function updateMetrics(){
-  const ws=ds(getWkDates(0)[0]),we=ds(getWkDates(0)[6]);
-  const we_=events.filter(e=>e.date>=ws&&e.date<=we);
-  const el1=document.getElementById('m-ev');if(el1)el1.textContent=we_.length;
-  const el1s=document.getElementById('m-ev-s');if(el1s)el1s.textContent=we_.filter(e=>e.date<TODAY).length+'개 완료';
-  // 미완료 할 일만 카운트
-  const rem=todos.filter(t=>!t.done).length;
-  const el2=document.getElementById('m-td');if(el2)el2.textContent=rem;
-  const el2s=document.getElementById('m-td-s');if(el2s)el2s.textContent='전체 '+todos.length+'개 중';
-  const el3=document.getElementById('m-pj');if(el3)el3.textContent=projects.length;
+  const ws=ds(getWkDates(0)[0]), we=ds(getWkDates(0)[6]);
+
+  // ── 일정: 오늘 / 이번 주 ──────────────────────────────────
+  const todayEvs  = events.filter(e=>e.date===TODAY);
+  const weekEvs   = events.filter(e=>e.date>=ws&&e.date<=we);
+  const pastWeek  = weekEvs.filter(e=>e.date<TODAY).length;
+
+  const el1t  = document.getElementById('m-ev-today');
+  const el1ts = document.getElementById('m-ev-today-s');
+  const el1   = document.getElementById('m-ev');
+  const el1s  = document.getElementById('m-ev-s');
+  if(el1t)  el1t.textContent  = todayEvs.length;
+  if(el1ts) el1ts.textContent = todayEvs.filter(e=>{
+    const [hh,mm]=e.time.split(':').map(Number);
+    const now=new Date(); return hh>now.getHours()||(hh===now.getHours()&&mm>now.getMinutes());
+  }).length + '개 예정';
+  if(el1)   el1.textContent   = weekEvs.length;
+  if(el1s)  el1s.textContent  = pastWeek + '개 완료';
+
+  // ── 할 일: 오늘 미완료 / 이번 주 미완료 ──────────────────
+  const todayTotal    = todos.filter(t=>t.due===TODAY);
+  const todayRem      = todayTotal.filter(t=>!t.done).length;
+  const weekTotal     = todos.filter(t=>t.due>=ws&&t.due<=we);
+  const weekRem       = weekTotal.filter(t=>!t.done).length;
+
+  const el2t  = document.getElementById('m-td-today');
+  const el2ts = document.getElementById('m-td-today-s');
+  const el2   = document.getElementById('m-td');
+  const el2s  = document.getElementById('m-td-s');
+  if(el2t)  el2t.textContent  = todayRem;
+  if(el2ts) el2ts.textContent = '전체 '+todayTotal.length+'개 중';
+  if(el2)   el2.textContent   = weekRem;
+  if(el2s)  el2s.textContent  = '전체 '+weekTotal.length+'개 중';
+
+  // ── 프로젝트 ──────────────────────────────────────────────
+  const el3  = document.getElementById('m-pj');
+  const el3s = document.getElementById('m-pj-s');
+  if(el3)  el3.textContent  = projects.length;
   const ending=projects.filter(p=>p.end&&p.end>=TODAY&&p.end<=TOMORROW).length;
-  const el3s=document.getElementById('m-pj-s');if(el3s)el3s.textContent=ending?`마감 ${ending}개`:'진행 중';
+  if(el3s) el3s.textContent = ending?`마감 ${ending}개`:'진행 중';
 }
 
 // ── 일정 / 프로젝트 카드 높이 동기화 ────────────────────────
