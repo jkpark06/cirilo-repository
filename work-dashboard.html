@@ -511,7 +511,12 @@ html,body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;b
 .rte-body ol{padding-left:1.4em;margin:4px 0}
 .rte-body li{margin:2px 0}
 .rte-body blockquote{border-left:3px solid var(--blue);padding-left:10px;margin:4px 0;color:var(--text2)}
-.rte-select{height:26px;border:1px solid var(--border2);border-radius:5px;background:var(--surface);color:var(--text);font-size:11px;font-family:inherit;padding:0 4px;outline:none;cursor:pointer}
+.rte-select{
+  height:26px;width:70px;flex-shrink:0;
+  border:1px solid var(--border2);border-radius:5px;
+  background:var(--surface);color:var(--text);
+  font-size:11px;font-family:inherit;padding:0 2px;outline:none;cursor:pointer
+}
 .meeting-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:var(--rs);cursor:pointer;transition:background .12s;margin-bottom:3px;border:1px solid transparent}
 .meeting-row:hover{background:var(--surface2);border-color:var(--border)}
 .meeting-row-left{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
@@ -2629,18 +2634,20 @@ document.addEventListener('keydown',function(e){
 
 // ════════ 리치 텍스트 에디터 ════════════════════════════════
 function rteToolbar(id){
-  return `<div class="rte-toolbar" onmousedown="return false">
+  return `<div class="rte-toolbar" onmousedown="rteToolbarMousedown(event,'${id}')">
     <!-- 텍스트 서식 -->
-    <button class="rte-btn" onclick="rteCmd('${id}','bold')" title="굵게 (Ctrl+B)"><b>B</b></button>
-    <button class="rte-btn" onclick="rteCmd('${id}','italic')" title="기울임 (Ctrl+I)"><i>I</i></button>
-    <button class="rte-btn" onclick="rteCmd('${id}','underline')" title="밑줄 (Ctrl+U)"><u>U</u></button>
-    <button class="rte-btn" onclick="rteCmd('${id}','strikeThrough')" title="취소선"><s>S</s></button>
+    <button class="rte-btn" onmousedown="event.preventDefault()" onclick="rteCmd('${id}','bold')" title="굵게"><b>B</b></button>
+    <button class="rte-btn" onmousedown="event.preventDefault()" onclick="rteCmd('${id}','italic')" title="기울임"><i>I</i></button>
+    <button class="rte-btn" onmousedown="event.preventDefault()" onclick="rteCmd('${id}','underline')" title="밑줄"><u>U</u></button>
+    <button class="rte-btn" onmousedown="event.preventDefault()" onclick="rteCmd('${id}','strikeThrough')" title="취소선"><s>S</s></button>
     <div class="rte-divider"></div>
-    <!-- 글자 크기 -->
-    <select class="rte-select" onchange="rteFontSize('${id}',this.value)" title="글자 크기">
+    <!-- 글자 크기 (선택 후 변경) -->
+    <select class="rte-select" title="글자 크기"
+      onmousedown="event.stopPropagation()"
+      onchange="rteFontSize('${id}',this.value);this.value=''">
       <option value="">크기</option>
-      <option value="1">아주 작게</option>
-      <option value="2">작게</option>
+      <option value="1">작게</option>
+      <option value="2">조금 작게</option>
       <option value="4">크게</option>
       <option value="5">아주 크게</option>
     </select>
@@ -2648,36 +2655,33 @@ function rteToolbar(id){
     <!-- 글자 색상 -->
     <div class="rte-color-btn" title="글자 색상">
       <div class="rte-color-preview" id="${id}-fc" style="background:#ef4444"></div>
-      <input type="color" value="#ef4444" oninput="rteFontColor('${id}',this.value);document.getElementById('${id}-fc').style.background=this.value">
+      <input type="color" value="#ef4444" onmousedown="event.stopPropagation()" oninput="rteFontColor('${id}',this.value);document.getElementById('${id}-fc').style.background=this.value">
     </div>
     <!-- 배경 색상 -->
-    <div class="rte-color-btn" title="배경 색상" style="border-style:dashed">
+    <div class="rte-color-btn" title="형광펜" style="border-style:dashed">
       <div class="rte-color-preview" id="${id}-bc" style="background:#fef08a"></div>
-      <input type="color" value="#fef08a" oninput="rteHighlight('${id}',this.value);document.getElementById('${id}-bc').style.background=this.value">
+      <input type="color" value="#fef08a" onmousedown="event.stopPropagation()" oninput="rteHighlight('${id}',this.value);document.getElementById('${id}-bc').style.background=this.value">
     </div>
     <div class="rte-divider"></div>
     <!-- 글머리 기호 -->
-    <button class="rte-btn" onclick="rteCmd('${id}','insertUnorderedList')" title="글머리 기호 (•)">
+    <button class="rte-btn" onmousedown="event.preventDefault()" onclick="rteCmd('${id}','insertUnorderedList')" title="글머리 기호">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4" cy="6" r="1.5" fill="currentColor"/><circle cx="4" cy="12" r="1.5" fill="currentColor"/><circle cx="4" cy="18" r="1.5" fill="currentColor"/></svg>
     </button>
-    <button class="rte-btn" onclick="rteCmd('${id}','insertOrderedList')" title="번호 목록">
+    <button class="rte-btn" onmousedown="event.preventDefault()" onclick="rteCmd('${id}','insertOrderedList')" title="번호 목록">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg>
     </button>
-    <!-- 들여쓰기 -->
-    <button class="rte-btn" onclick="rteCmd('${id}','indent')" title="들여쓰기">
+    <button class="rte-btn" onmousedown="event.preventDefault()" onclick="rteCmd('${id}','indent')" title="들여쓰기 (Tab)">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><polyline points="9 12 13 12"/><line x1="13" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/><polyline points="3 9 7 12 3 15"/></svg>
     </button>
-    <button class="rte-btn" onclick="rteCmd('${id}','outdent')" title="내어쓰기">
+    <button class="rte-btn" onmousedown="event.preventDefault()" onclick="rteCmd('${id}','outdent')" title="내어쓰기 (Shift+Tab)">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="9" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/><polyline points="7 9 3 12 7 15"/></svg>
     </button>
     <div class="rte-divider"></div>
-    <!-- 인용구 -->
-    <button class="rte-btn" onclick="rteBlockquote('${id}')" title="인용구">
+    <button class="rte-btn" onmousedown="event.preventDefault()" onclick="rteBlockquote('${id}')" title="인용구">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
     </button>
-    <!-- 초기화 -->
-    <button class="rte-btn" onclick="rteCmd('${id}','removeFormat')" title="서식 초기화" style="margin-left:auto">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 12l6-6 6 6M6 12l6 6 6-6" opacity=".4"/><line x1="4" y1="20" x2="20" y2="20"/></svg>
+    <button class="rte-btn" onmousedown="event.preventDefault()" onclick="rteCmd('${id}','removeFormat')" title="서식 초기화" style="margin-left:auto">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
     </button>
   </div>`;
 }
@@ -2689,8 +2693,18 @@ function rteBody(id, placeholder){
     oninput="rteUpdateBtns('${id}')"></div>`;
 }
 
+// 툴바 클릭 시 에디터 선택 영역 보존
+let _rteLastSel = null;
+function rteToolbarMousedown(e, id){
+  // select, input[type=color]는 기본 동작 허용 (stopPropagation만)
+  if(e.target.tagName==='SELECT' || e.target.type==='color') return;
+  // 버튼 클릭 시엔 preventDefault로 에디터 포커스 유지 (각 버튼에서 처리)
+}
+
 function rteCmd(id, cmd, val){
-  document.getElementById(id).focus();
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.focus();
   document.execCommand(cmd, false, val||null);
   rteUpdateBtns(id);
 }
@@ -2698,19 +2712,46 @@ function rteFontSize(id, val){
   if(!val) return;
   const el = document.getElementById(id); if(!el) return;
   el.focus();
-  const sizes = {'1':'10px','2':'12px','4':'17px','5':'22px'};
-  const px = sizes[val]; if(!px) return;
+  const sizes = {'1':'0.75em','2':'0.875em','4':'1.25em','5':'1.6em'};
+  const em = sizes[val]; if(!em) return;
+
   const sel = window.getSelection();
-  if(!sel || sel.isCollapsed) return;
-  try{
-    document.execCommand('fontSize', false, '7');
-    el.querySelectorAll('font[size="7"]').forEach(node=>{
+  const hasSelection = sel && !sel.isCollapsed;
+
+  if(hasSelection){
+    // 텍스트 선택된 경우: 선택 영역에만 적용
+    try{
+      document.execCommand('fontSize', false, '7');
+      el.querySelectorAll('font[size="7"]').forEach(node=>{
+        const span = document.createElement('span');
+        span.style.fontSize = em;
+        while(node.firstChild) span.appendChild(node.firstChild);
+        node.parentNode.replaceChild(span, node);
+      });
+    }catch(e){}
+  } else {
+    // 선택 없는 경우: 커서 위치에 다음 입력될 텍스트에 적용
+    try{
+      document.execCommand('fontSize', false, '7');
+      // 빈 span을 삽입해 스타일 전파
       const span = document.createElement('span');
-      span.style.fontSize = px;
-      node.parentNode.replaceChild(span, node);
-      while(node.firstChild) span.appendChild(node.firstChild);
-    });
-  }catch(e){}
+      span.style.fontSize = em;
+      if(sel && sel.rangeCount){
+        const range = sel.getRangeAt(0);
+        range.insertNode(span);
+        range.setStart(span, 0);
+        range.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+    }catch(e){}
+  }
+  // select를 기본값으로 리셋
+  const selEl = el.closest('.rte-wrap');
+  if(selEl){
+    const s = selEl.querySelector('.rte-select');
+    if(s) setTimeout(()=>{ s.value=''; }, 10);
+  }
 }
 function rteFontColor(id, color){
   document.getElementById(id).focus();
