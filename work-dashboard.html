@@ -440,18 +440,23 @@ html,body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;b
 .cl-add-item-row input:focus{border-color:var(--blue)}
 .cl-add-item-row button{height:32px;padding:0 12px;border-radius:var(--rs);border:none;background:var(--blue);color:#fff;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;flex-shrink:0}
 /* 3열 항목 입력 */
-.cl-quick-inp{height:30px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--surface);color:var(--text);padding:0 8px;font-size:12px;font-family:inherit;outline:none;width:100%}
-.cl-quick-inp:focus{border-color:var(--blue)}
-/* 3열 항목 그리드 */
-.cl-items-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:4px}
-/* 모바일에서 1열 */
-@media(max-width:768px){
-  .cl-items-grid{grid-template-columns:1fr!important}
-  .cl-item{padding:8px 10px}
-}
 /* 드래그 중 스타일 */
 .cl-item.dragging{opacity:.4;background:var(--blue-bg)!important}
 .cl-item.drag-over{border-top:2px solid var(--blue)}
+
+.cl-quick-inp{height:30px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--surface);color:var(--text);padding:0 8px;font-size:12px;font-family:inherit;outline:none;width:100%}
+.cl-quick-inp:focus{border-color:var(--blue)}
+/* 체크리스트 항목 모바일 */
+.cl-item-text{white-space:normal!important;word-break:break-word;overflow-wrap:break-word}
+/* 3열 항목 그리드 */
+.cl-items-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:4px}
+/* 모바일에서 1열, 텍스트 넘침 방지 */
+@media(max-width:768px){
+  .cl-items-grid{grid-template-columns:1fr!important}
+  .cl-item{padding:8px 10px;min-width:0}
+  .cl-item-body{min-width:0;flex:1;overflow:hidden}
+  .cl-item-text{font-size:13px!important}
+}
 
 @media(max-width:768px){
   /* ── 체크리스트 모바일 완전 재설계 ── */
@@ -477,8 +482,10 @@ html,body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;b
   }
   /* 뒤로가기 버튼 모바일에서만 표시 */
   #cl-back-btn{display:flex!important}
-  /* 아이템 그리드: 모바일 2열 */
-  .cl-items-grid{grid-template-columns:repeat(2,1fr)!important}
+  /* 아이템 그리드: 모바일 1열, 텍스트 넘침 방지 */
+  .cl-items-grid{grid-template-columns:1fr!important}
+  .cl-item{min-width:0;overflow:hidden}
+  .cl-item-text{white-space:normal!important;word-break:break-word}
 }
 
 /* ── Rich Text Editor ── */
@@ -942,8 +949,13 @@ html,body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;b
               <div class="card-title" style="margin-bottom:0;flex:1;min-width:0">
                 <!-- 모바일 뒤로가기 버튼 (PC에선 숨김) -->
                 <button id="cl-back-btn" onclick="clGoBack()"
-                  style="display:none;align-items:center;gap:4px;border:none;background:none;color:var(--blue);font-size:13px;font-weight:600;cursor:pointer;padding:0;font-family:inherit;flex-shrink:0;margin-right:6px">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+                  style="display:none;align-items:center;gap:5px;
+                    border:none;border-radius:99px;
+                    background:rgba(99,102,241,.15);color:var(--blue);
+                    font-size:12px;font-weight:600;cursor:pointer;
+                    padding:5px 12px 5px 8px;font-family:inherit;flex-shrink:0;margin-right:8px;
+                    transition:background .15s">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
                   폴더
                 </button>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
@@ -1174,9 +1186,9 @@ html,body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;b
 </div>
 <!-- ── Meeting Detail ─────────────────────────────────────────── -->
 <div class="ov" id="mt-detail-modal">
-  <div class="modal" style="max-width:600px">
-    <div class="mhdr"><div class="mtitle" id="mt-detail-title"></div><button class="xbtn" onclick="closeMeetingDetail()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
-    <div id="mt-detail-body" style="max-height:60vh;overflow-y:auto"></div>
+  <div class="modal" style="max-width:640px;width:96vw">
+    <div class="mhdr"><div class="mtitle" id="mt-detail-title" style="word-break:break-word"></div><button class="xbtn" onclick="closeMeetingDetail()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
+    <div id="mt-detail-body" style="max-height:65vh;overflow-y:auto;overflow-x:hidden;padding:0 4px 4px"></div>
     <div class="mfooter"><button class="btn btn-g" onclick="openMeetingModal(currentMeetingId);closeMeetingDetail()">수정</button><button class="btn btn-g" onclick="closeMeetingDetail()">닫기</button></div>
   </div>
 </div>
@@ -1484,10 +1496,10 @@ const HEROES_ALL = [
   {date:'2026-05-29',time:'18:30',opp:'KT',   home:true, venue:'고척',result:null},
   {date:'2026-05-30',time:'18:30',opp:'KT',   home:true, venue:'고척',result:null},
   {date:'2026-05-31',time:'14:00',opp:'KT',   home:true, venue:'고척',result:null},
-  // 6월
-  {date:'2026-06-02',time:'17:00',opp:'두산', home:false,venue:'잠실',result:null},
-  {date:'2026-06-03',time:'17:00',opp:'두산', home:false,venue:'잠실',result:null},
-  {date:'2026-06-04',time:'18:30',opp:'두산', home:false,venue:'잠실',result:null},
+  // 6월 (6/2~6/4: SSG 원정, 나무위키 키움/2026년/6월 기준)
+  {date:'2026-06-02',time:'17:00',opp:'SSG',  home:false,venue:'문학',result:null},
+  {date:'2026-06-03',time:'17:00',opp:'SSG',  home:false,venue:'문학',result:null},
+  {date:'2026-06-04',time:'18:30',opp:'SSG',  home:false,venue:'문학',result:null},
   {date:'2026-06-05',time:'18:30',opp:'롯데', home:true, venue:'고척',result:null},
   {date:'2026-06-06',time:'14:00',opp:'롯데', home:true, venue:'고척',result:null},
   {date:'2026-06-07',time:'14:00',opp:'롯데', home:true, venue:'고척',result:null},
@@ -2684,8 +2696,21 @@ function rteCmd(id, cmd, val){
 }
 function rteFontSize(id, val){
   if(!val) return;
-  document.getElementById(id).focus();
-  document.execCommand('fontSize', false, val);
+  const el = document.getElementById(id); if(!el) return;
+  el.focus();
+  const sizes = {'1':'10px','2':'12px','4':'17px','5':'22px'};
+  const px = sizes[val]; if(!px) return;
+  const sel = window.getSelection();
+  if(!sel || sel.isCollapsed) return;
+  try{
+    document.execCommand('fontSize', false, '7');
+    el.querySelectorAll('font[size="7"]').forEach(node=>{
+      const span = document.createElement('span');
+      span.style.fontSize = px;
+      node.parentNode.replaceChild(span, node);
+      while(node.firstChild) span.appendChild(node.firstChild);
+    });
+  }catch(e){}
 }
 function rteFontColor(id, color){
   document.getElementById(id).focus();
@@ -2700,17 +2725,33 @@ function rteBlockquote(id){
   document.execCommand('formatBlock', false, 'blockquote');
 }
 
-// Tab 키: 들여쓰기 / Enter: 개행 허용 (상위 이벤트 버블링 차단)
+// Tab: 들여쓰기 / * space: 글머리기호 / Enter: 개행
 function rteKeydown(e, id){
   if(e.key==='Tab'){
     e.preventDefault();
     if(e.shiftKey) rteCmd(id,'outdent');
     else rteCmd(id,'indent');
+    return;
   }
-  // Enter 키: 개행 허용 + 상위 이벤트로 전파 차단 (모달 저장 방지)
   if(e.key==='Enter'){
     e.stopPropagation();
-    // 기본 줄바꿈 동작 허용 (e.preventDefault() 호출 안 함)
+    return;
+  }
+  if(e.key===' '){
+    const sel = window.getSelection();
+    if(!sel||!sel.rangeCount) return;
+    const range = sel.getRangeAt(0);
+    const node = range.startContainer;
+    if(node.nodeType===3){
+      const text = node.textContent.slice(0, range.startOffset);
+      if(text==='*'||text==='-'){
+        e.preventDefault(); e.stopPropagation();
+        node.textContent = node.textContent.slice(range.startOffset);
+        range.setStart(node,0); range.collapse(true);
+        sel.removeAllRanges(); sel.addRange(range);
+        document.execCommand('insertUnorderedList',false,null);
+      }
+    }
   }
 }
 
@@ -2858,25 +2899,22 @@ function openMeetingDetail(id){
   // plain text인지 HTML인지 판별해서 렌더
   function renderField(content, bg){
     if(!content) return '';
-    // 기존 데이터: <pre style="...">...</pre> 로 감싸진 경우 → 안쪽 내용만 추출
+    const WB = 'word-break:break-word;overflow-wrap:break-word';
     const preMatch = content.match(/^<pre[^>]*>([\s\S]*?)<\/pre>$/i);
     if(preMatch){
-      // pre 안에 또 HTML 태그가 있으면 innerHTML로, 없으면 plain text로
       const inner = preMatch[1];
       const hasInnerHTML = /<[a-z][\s\S]*>/i.test(inner);
       if(hasInnerHTML){
-        return `<div style="font-size:13px;color:var(--text);line-height:1.7;background:${bg};padding:10px 12px;border-radius:var(--rs)">${inner}</div>`;
+        return `<div style="font-size:13px;color:var(--text);line-height:1.7;background:${bg};padding:10px 12px;border-radius:var(--rs);${WB}">${inner}</div>`;
       } else {
-        return `<pre style="font-size:13px;color:var(--text);white-space:pre-wrap;font-family:inherit;line-height:1.6;margin:0;background:${bg};padding:10px 12px;border-radius:var(--rs)">${esc(inner)}</pre>`;
+        return `<pre style="font-size:13px;color:var(--text);white-space:pre-wrap;${WB};font-family:inherit;line-height:1.6;margin:0;background:${bg};padding:10px 12px;border-radius:var(--rs)">${esc(inner)}</pre>`;
       }
     }
-    // 일반 HTML (리치 에디터로 저장된 경우)
     const isHTML = /<[a-z][\s\S]*>/i.test(content);
     if(isHTML){
-      return `<div style="font-size:13px;color:var(--text);line-height:1.7;background:${bg};padding:10px 12px;border-radius:var(--rs)">${content}</div>`;
+      return `<div style="font-size:13px;color:var(--text);line-height:1.7;background:${bg};padding:10px 12px;border-radius:var(--rs);${WB}">${content}</div>`;
     }
-    // plain text
-    return `<pre style="font-size:13px;color:var(--text);white-space:pre-wrap;font-family:inherit;line-height:1.6;margin:0;background:${bg};padding:10px 12px;border-radius:var(--rs)">${esc(content)}</pre>`;
+    return `<pre style="font-size:13px;color:var(--text);white-space:pre-wrap;${WB};font-family:inherit;line-height:1.6;margin:0;background:${bg};padding:10px 12px;border-radius:var(--rs)">${esc(content)}</pre>`;
   }
 
   document.getElementById('mt-detail-title').textContent=m.title;
